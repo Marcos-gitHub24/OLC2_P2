@@ -1,0 +1,20 @@
+body{
+    padding: 0;
+}
+
+#tree{
+    position:absolute;
+    left: 55px;
+    top: 50px;
+}
+#table{
+    position:absolute;
+    left: 120px;
+    top: 50px;
+}
+
+#error{
+    position:absolute;
+    left: 190px;
+    top: 50px;
+}
