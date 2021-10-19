@@ -18,6 +18,8 @@ class Generador:
         self.printString = False
         self.potencia = False
         self.concat = False
+        self.potenciaString = False
+        self.compStrings = False
         
     def cleanAll(self):
         # Contadores
@@ -46,7 +48,7 @@ class Generador:
                 ret += self.temporales[temp]
                 if temp != (len(self.temporales) - 1):
                     ret += ", "
-            ret += " float64\n"
+            ret += " float64;\n"
         ret += "var P, H float64;\nvar stack [10000]float64;\nvar heap [10000]float64;\n\n"
         return ret
 
@@ -130,10 +132,10 @@ class Generador:
     ###############
     # STACK
     ###############
-    def setStack(self, pos, value):
+    def guardar_stack(self, pos, value):
         self.agregarCodigo(f'stack[int({pos})]={value};\n')
     
-    def getStack(self, place, pos):
+    def obtener_stack(self, place, pos):
         self.agregarCodigo(f'{place}=stack[int({pos})];\n')
 
     #############
@@ -205,7 +207,7 @@ class Generador:
 
         self.agregarExpresion(tempP, 'P', '1', '+')
 
-        self.getStack(tempH, tempP)
+        self.obtener_stack(tempH, tempP)
 
         # Temporal para comparar
         tempC = self.agregarTemporal()
@@ -238,12 +240,12 @@ class Generador:
         posicion_base = self.agregarTemporal() 
         self.agregarExpresion(posicion_base,'P','1','+') #Indice base
         base = self.agregarTemporal()
-        self.getStack(base, posicion_base) # aca ya tengo la base
+        self.obtener_stack(base, posicion_base) # aca ya tengo la base
 
         posicion_exponente = self.agregarTemporal() #indice exponente
         self.agregarExpresion(posicion_exponente,'P','2','+')
         exponente = self.agregarTemporal()
-        self.getStack(exponente, posicion_exponente) #aca ya tengo al exponente
+        self.obtener_stack(exponente, posicion_exponente) #aca ya tengo al exponente
         
         contador = self.agregarTemporal()
         self.agregarExpresion(contador,'1','','') #inicio el contador
@@ -260,7 +262,7 @@ class Generador:
         self.agregarGoto(lblWhile)
 
         self.colocarLbl(lblSalida)
-        self.setStack('P',base)
+        self.guardar_stack('P',base)
         self.addEndFunc()
         self.es_nativa = False
     
@@ -276,7 +278,7 @@ class Generador:
         posicion_primera = self.agregarTemporal()
         self.agregarExpresion(posicion_primera,'P','1','+') #Obtengo la posicion inicial de la cadena 1
         primer_apuntador = self.agregarTemporal() 
-        self.getStack(primer_apuntador,posicion_primera) #se obtiene la referencia al heap de la primera cadena
+        self.obtener_stack(primer_apuntador,posicion_primera) #se obtiene la referencia al heap de la primera cadena
 
         primer_while = self.agregarLabel()
         lbl_siguiente = self.agregarLabel() #cuando termina de recorrer la primera cadena
@@ -294,7 +296,7 @@ class Generador:
         posicion_segunda = self.agregarTemporal()
         self.agregarExpresion(posicion_segunda,'P','2','+') #Obtengo la posicion inicial de la cadena 2
         segundo_apuntador = self.agregarTemporal()
-        self.getStack(segundo_apuntador,posicion_segunda) #se obtiene la referencia al heap de la segunda cadena
+        self.obtener_stack(segundo_apuntador,posicion_segunda) #se obtiene la referencia al heap de la segunda cadena
 
         segundo_while = self.agregarLabel()
         self.colocarLbl(segundo_while)
@@ -309,6 +311,104 @@ class Generador:
         self.colocarLbl(lbl_salida)
         self.guardar_heap('H','-1')
         self.agregarExpresion('H','H','1','+')
-        self.setStack('P',inicio_nueva)
+        self.guardar_stack('P',inicio_nueva)
+        self.addEndFunc()
+        self.es_nativa = False
+    
+    def funcPotenciaString(self):
+        if (self.potenciaString):
+            return
+        self.potenciaString = True
+        self.es_nativa = True
+        self.addBeginFunc('potenciaString')
+        
+        apuntador_palabra = self.agregarTemporal() 
+        self.agregarExpresion(apuntador_palabra,'P','1','+')
+        palabra = self.agregarTemporal()
+        self.obtener_stack(palabra,apuntador_palabra) #palabra base
+
+        apuntador_exponente = self.agregarTemporal()
+        self.agregarExpresion(apuntador_exponente,'P','2','+')
+        exponente = self.agregarTemporal()
+        self.obtener_stack(exponente,apuntador_exponente)  #exponente 
+
+        contador = self.agregarTemporal() #contador para el evaluar cuantas veces se hace el ciclo
+        self.agregarExpresion(contador,'0','','')
+
+        inicio_nueva = self.agregarTemporal() #se guarda la posicion donde estara la nueva palabra
+        self.agregarExpresion(inicio_nueva,'H','','')
+
+        pivote = self.agregarTemporal()
+        self.agregarExpresion(pivote,palabra,'','') #pivote para moverse en el heap 
+
+        lbl_while1 = self.agregarLabel()
+        lbl_while2 = self.agregarLabel() #Labels para los whiles y la salida
+        lbl_salida = self.agregarLabel()
+
+        self.colocarLbl(lbl_while1)
+        self.agregarIf(exponente,contador,'==',lbl_salida) #if para saber si ya se hizo la potencia la cantidad necesaria
+        self.agregarExpresion(contador,contador,'1','+')
+        self.agregarExpresion(pivote,palabra,'','')
+        self.colocarLbl(lbl_while2)
+        pivote_nueva = self.agregarTemporal()
+        self.obtener_heap(pivote_nueva,pivote)
+        self.agregarExpresion(pivote,pivote,'1','+')
+
+        self.agregarIf(pivote_nueva,'-1','==',lbl_while1)
+        self.guardar_heap('H',pivote_nueva)
+        self.agregarExpresion('H','H','1','+')
+        self.agregarGoto(lbl_while2)
+
+        self.colocarLbl(lbl_salida)
+        self.guardar_heap('H','-1')
+        self.agregarExpresion('H','H','1','+')
+        self.guardar_stack('P',inicio_nueva)
+
+        self.addEndFunc()
+        self.es_nativa = False
+
+    def funCompararStrings(self):
+        if (self.compStrings):
+            return
+        self.compStrings = True
+        self.es_nativa = True
+        self.addBeginFunc('compararStrings')
+
+        primer_apuntador = self.agregarTemporal()
+        self.agregarExpresion(primer_apuntador,'P','1','+')
+        primer_pivote = self.agregarTemporal() #referencia de la primera palabra en el heap
+        self.obtener_stack(primer_pivote,primer_apuntador) #pivote primera palabra
+        
+        segundo_apuntador = self.agregarTemporal()
+        self.agregarExpresion(segundo_apuntador,'P','2','+')
+        segundo_pivote = self.agregarTemporal() #referencia de la segunda palabra en el heap
+        self.obtener_stack(segundo_pivote,segundo_apuntador) #pivote segunda palabra
+
+        lbl_while = self.agregarLabel()
+        lbl_true = self.agregarLabel()
+        lbl_false = self.agregarLabel() #generamos los labels necesarios
+        lbl_salida = self.agregarLabel()
+
+        self.colocarLbl(lbl_while)
+        primera_palabra = self.agregarTemporal()
+        segunda_palabra = self.agregarTemporal()
+        
+        self.obtener_heap(primera_palabra,primer_pivote)
+        self.obtener_heap(segunda_palabra,segundo_pivote)
+        
+        self.agregarIf(primera_palabra,segunda_palabra,'!=',lbl_false)
+        self.agregarIf(segunda_palabra,'-1','!=',lbl_true)
+
+        self.agregarExpresion(primer_pivote,primer_pivote,'1','+')
+        self.agregarExpresion(segundo_pivote,segundo_pivote,'1','+')
+
+        self.agregarGoto(lbl_while)
+        self.colocarLbl(lbl_true)
+        self.guardar_stack('P','1')
+        self.agregarGoto(lbl_salida)
+        self.colocarLbl(lbl_false)
+        self.guardar_stack('P','0')
+        self.colocarLbl(lbl_salida)
+
         self.addEndFunc()
         self.es_nativa = False

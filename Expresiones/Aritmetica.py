@@ -120,17 +120,17 @@ class Aritmetica(NodoAST):
                 base = generador.agregarTemporal()
                 generador.agregarExpresion(base,'P',entorno.size,'+')
                 generador.agregarExpresion(base,base,'1','+')
-                generador.setStack(base,res_left.valor)
+                generador.guardar_stack(base,res_left.valor)
 
                 exponente = generador.agregarTemporal()
                 generador.agregarExpresion(exponente,'P',entorno.size,'+')
                 generador.agregarExpresion(exponente,exponente,'2','+')
-                generador.setStack(exponente,res_right.valor)
+                generador.guardar_stack(exponente,res_right.valor)
                 generador.agregarExpresion('P','P',entorno.size,'+')
                 generador.callFun('concatenar')
 
                 resultado = generador.agregarTemporal()
-                generador.getStack(resultado, 'P')
+                generador.obtener_stack(resultado, 'P')
                 generador.agregarExpresion('P','P',entorno.size,'-')
                 return Return(resultado,TIPO.CADENA, True)
 
@@ -141,26 +141,44 @@ class Aritmetica(NodoAST):
 
         if (self.operador==OperadorAritmetico.DIV):
             operador = '/'
+            bandera = False
+            
             if(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.ENTERO):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                bandera = True
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, int(res_left.getValue()) / int(res_right.getValue()));
-                return Return(temporal, TIPO.ENTERO, True)
 
             elif(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.DECIMAL):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                bandera = True
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, int(res_left.getValue()) / float(res_right.getValue()));
-                return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.ENTERO):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                bandera = True
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) / int(res_right.getValue()));
-                return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.DECIMAL):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                bandera = True
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) / float(res_right.getValue()));
+            if bandera:
+                lbl_correcto = generador.agregarLabel()
+                lbl_salida = generador.agregarLabel()
+                denominador = generador.agregarTemporal()
+                generador.agregarExpresion(denominador,res_right.valor,'','')
+                generador.agregarIf(denominador,'0','!=',lbl_correcto)
+                generador.agregarPrint('c','77')
+                generador.agregarPrint('c','97')
+                generador.agregarPrint('c','116')
+                generador.agregarPrint('c','104')
+                generador.agregarPrint('c','69')
+                generador.agregarPrint('c','114')
+                generador.agregarPrint('c','114')
+                generador.agregarPrint('c','111')
+                generador.agregarPrint('c','114')
+                generador.agregarExpresion(temporal,'0','','')
+                generador.agregarGoto(lbl_salida)
+                generador.colocarLbl(lbl_correcto)
+                generador.agregarExpresion(temporal, res_left.valor, denominador, operador)
+                generador.colocarLbl(lbl_salida)
                 return Return(temporal, TIPO.DECIMAL, True)
-        
             else:
                 #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la division con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse la division con esos operadores",self.fila,self.columna)
@@ -169,13 +187,28 @@ class Aritmetica(NodoAST):
         if(self.operador==OperadorAritmetico.POTENCIA):
             bandera = False
             if(res_left.tipo == TIPO.CADENA and res_right.tipo == TIPO.ENTERO):
-                bandera = True
+                generador.funcPotenciaString()
+                base = generador.agregarTemporal()
+                generador.agregarExpresion(base,'P',entorno.size,'+')
+                generador.agregarExpresion(base,base,'1','+')
+                generador.guardar_stack(base,res_left.valor)
+
+                exponente = generador.agregarTemporal()
+                generador.agregarExpresion(exponente,'P',entorno.size,'+')
+                generador.agregarExpresion(exponente,exponente,'2','+')
+                generador.guardar_stack(exponente,res_right.valor)
+                generador.agregarExpresion('P','P',entorno.size,'+')
+                generador.callFun('potenciaString')
+                resultado = generador.agregarTemporal()
+                generador.obtener_stack(resultado, 'P')
+                generador.agregarExpresion('P','P',entorno.size,'-')
+                return Return(resultado,TIPO.CADENA, True)
                 #return Primitivo(TIPO.CADENA, self.fila, self.columna, str(res_left.getValue()) * int(res_right.getValue()));
             
             elif(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.ENTERO):
                 bandera = True
                 #return Primitivo(TIPO.ENTERO, self.fila, self.columna, int(res_left.getValue()) ** int(res_right.getValue()));
-
+                
             elif(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.DECIMAL):
                 return Primitivo(TIPO.DECIMAL, self.fila, self.columna, int(res_left.getValue()) ** float(res_right.getValue()));
 
@@ -191,16 +224,16 @@ class Aritmetica(NodoAST):
                 base = generador.agregarTemporal()
                 generador.agregarExpresion(base,'P',entorno.size,'+')
                 generador.agregarExpresion(base,base,'1','+')
-                generador.setStack(base,res_left.valor)
+                generador.guardar_stack(base,res_left.valor)
 
                 exponente = generador.agregarTemporal()
                 generador.agregarExpresion(exponente,'P',entorno.size,'+')
                 generador.agregarExpresion(exponente,exponente,'2','+')
-                generador.setStack(exponente,res_right.valor)
+                generador.guardar_stack(exponente,res_right.valor)
                 generador.agregarExpresion('P','P',entorno.size,'+')
                 generador.callFun('potencia')
                 resultado = generador.agregarTemporal()
-                generador.getStack(resultado, 'P')
+                generador.obtener_stack(resultado, 'P')
                 generador.agregarExpresion('P','P',entorno.size,'-')
                 return Return(resultado,TIPO.DECIMAL, True)
 

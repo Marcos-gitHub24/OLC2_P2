@@ -666,22 +666,24 @@ def p_if1(t):
 
 def p_if2(t):
     '''
-    mas_instrucciones_if : else_instr
-                        | elseif_instr
+    mas_instrucciones_if : elseif_instr
+                        | else_instr
                         | end_instr
     '''
     t[0] = t[1]
 
+
 def p_if3(t):
-    ' else_instr        : RELSE instrucciones REND'
-    t[0] = t[2]
+    'elseif_instr       : RELSEIF expresion instrucciones mas_instrucciones_if'
+    t[0] = If(t[2], t[3], t[4], t.lineno(1), find_column(input, t.slice[1])) # si existen elseif
+
 
 def p_if4(t):
-    'elseif_instr       : RELSEIF expresion instrucciones mas_instrucciones_if'
-    t[0] = If(t[2], t[3], t[4], t.lineno(1), find_column(input, t.slice[1]))
+    'else_instr        : RELSE instrucciones REND'  #si existe un else
+    t[0] = t[2]
 
 def p_if5(t):
-    'end_instr          : REND '
+    'end_instr          : REND '  # termina mi if
     t[0] = None
 
 #///////////////////////////////////////WHILE//////////////////////////////////////////////////

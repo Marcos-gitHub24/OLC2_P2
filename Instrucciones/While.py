@@ -1,13 +1,15 @@
 from Instrucciones.Continue import Continue
-import re
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
+from Instrucciones.If import If
 from Instrucciones.Return import Return
 from Abstract.NodoAST import NodoAST
 from TS.Excepcion import Excepcion
+from TS.Generador import Generador
 from TS.Tipo import TIPO
 from TS.TablaSimbolos import TablaSimbolos
 from Instrucciones.Break import Break
+from TS.Entorno import Entorno
 
 class While(NodoAST):
     def __init__(self, condicion, instrucciones, fila, columna):
@@ -15,36 +17,25 @@ class While(NodoAST):
         self.condicion = condicion
         self.instrucciones = instrucciones
 
-    def interpretar(self, tree, table):
-        while True:
-            condicion = self.condicion.interpretar(tree, table)
-            if isinstance(condicion, Excepcion): 
-                tree.addExcepcion(condicion)
-                return condicion
-            if condicion.tipo == TIPO.BOOLEANO:
-                if bool(condicion.valor) == True:   # VERIFICA SI ES VERDADERA LA CONDICION
-                    nuevaTabla = TablaSimbolos(table)       #NUEVO ENTORNO
-                    nuevaTabla.setEntorno("While")
-                    tree.agregarTabla(nuevaTabla)
-                    if isinstance(self.instrucciones, Break): 
-                            return None
-                    for instruccion in self.instrucciones:
-                        result = instruccion.interpretar(tree, nuevaTabla) #EJECUTA INSTRUCCION ADENTRO DEL IF
-                        if isinstance(result, Excepcion) :
-                            tree.getExcepciones().append(result)
-                            tree.updateConsola(result.toString())
-                            tree.addExcepcion(result)
-                            continue
-                        if isinstance(result, Break): 
-                            return result
-                        if isinstance(result, Return): return result
-                        if isinstance(result, Continue):break
+    def interpretar(self, entorno):
+        aux = Generador()
+        generador = aux.obtenerGen()
+        lbl_while = generador.agregarLabel()
+        generador.colocarLbl(lbl_while)
+        condicion = self.condicion.interpretar(entorno)
+        nuevo_entorno = Entorno(entorno)
 
-                else:
-                    break
-            else:
-                tree.addExcepcion(Excepcion("Semantico", "Tipo de dato no booleano en la condicion.", self.fila, self.columna))
-                return Excepcion("Semantico", "Tipo de dato no booleano en la condicion.", self.fila, self.columna)
+        nuevo_entorno.lbl_break = condicion.falselbl
+        nuevo_entorno.lbl_continue = lbl_while
+        
+        generador.colocarLbl(condicion.truelbl)
+        for i in self.instrucciones:
+            i.interpretar(nuevo_entorno)
+        generador.agregarGoto(lbl_while)
+        print('---lblwhile----')
+        print(condicion.falselbl)
+        generador.colocarLbl(condicion.falselbl)
+       
 
     def getNodo(self):
         nodo = NodoReporteArbol("WHILE")

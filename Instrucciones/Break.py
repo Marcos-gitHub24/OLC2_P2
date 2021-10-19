@@ -1,5 +1,6 @@
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from Abstract.NodoAST import NodoAST
+from TS.Generador import Generador
 from TS.Tipo import TIPO
 
 class Break(NodoAST):
@@ -7,8 +8,12 @@ class Break(NodoAST):
         super().__init__(TIPO.BREAK, fila, columna)
         
 
-    def interpretar(self, tree, table):
-        return self
+    def interpretar(self, entorno):
+        if entorno.lbl_break == None:
+            return
+        aux = Generador()
+        generador = aux.obtenerGen()
+        generador.agregarGoto(entorno.lbl_break)
 
     def getNodo(self):
         nodo = NodoReporteArbol("BREAK")

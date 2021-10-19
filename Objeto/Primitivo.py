@@ -28,6 +28,15 @@ class Primitivo(NodoAST):
             generador.guardar_heap('H', '-1')
             generador.sumar_heap()
             return Return(temp, TIPO.CADENA, True)
+        elif self.tipo == TIPO.CHARACTER:
+            temp = generador.agregarTemporal()
+            generador.agregarExpresion(temp, 'H', '', '')
+            for i in self.valor:
+                generador.guardar_heap('H', ord(i))
+                generador.sumar_heap()
+            generador.guardar_heap('H', '-1')
+            generador.sumar_heap()
+            return Return(temp, TIPO.CHARACTER, True)
         elif self.tipo == TIPO.BOOLEANO:
             if self.truelbl == None:
                 self.truelbl = generador.agregarLabel()
@@ -42,8 +51,10 @@ class Primitivo(NodoAST):
             resultado = Return(self.valor, self.tipo, False)
             resultado.truelbl = self.truelbl
             resultado.falselbl = self.falselbl
+            print('--primitivo--')
             print(resultado.truelbl)
             print(resultado.falselbl)
+            print('--primitivo--')
             return resultado
 
 

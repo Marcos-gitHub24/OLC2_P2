@@ -4,37 +4,57 @@ from Abstract.NodoReporteArbol import NodoReporteArbol
 from Abstract.NodoAST import NodoAST
 from TS.Excepcion import Excepcion
 from TS.Tipo import TIPO
+from Abstract.Expresion import Expresion
+from Abstract.Return import Return
+from TS.Generador import Generador
 
 class Imprimirln(NodoAST):
     def __init__(self, expresion, fila, columna):
         super().__init__(TipoObjeto.CADENA, fila, columna)
         self.expresion = expresion
         self.cadena = ""
-        """self.expresion = expresion
-        self.fila = fila
-        self.columna = columna"""
+        
 
-    def interpretar(self, tree, table):
+    def interpretar(self, entorno):
         self.cadena = ""
         for i in self.expresion:
-            value = i.interpretar(tree, table)
-            if isinstance(value, Excepcion) :
-                    return value
-            elif isinstance(value, Struct):
-                self.cadena += str(obtenerStruct(value))
+            print(i)
+            val = i.interpretar(entorno)
+            aux = Generador()
+            generador = aux.obtenerGen()
+            if val.tipo == TIPO.ENTERO:
+                generador.agregarPrint("d", val.valor)
+            elif val.tipo == TIPO.DECIMAL:
+                generador.agregarPrint("g", val.valor)
                 
-            elif  isinstance(value.valor, list):
-                self.cadena += str(obtenerVector(tree, table, value.valor))
-            else:
-                if value.valor == None:
-                    self.cadena += 'nothing'    
-                else:
-                    self.cadena += str(value.valor)
-        tree.updateConsolaln(self.cadena) #TODO: Actualizar singleton en su campo consola
-        return None
+            elif val.tipo == TIPO.BOOLEANO:
+                tempLbl = generador.agregarLabel()     
+
+                generador.colocarLbl(val.truelbl)
+                generador.printTrue()
+                
+                generador.agregarGoto(tempLbl)
+                
+                generador.colocarLbl(val.falselbl)
+                generador.printFalse()
+
+                generador.colocarLbl(tempLbl)
+
+            elif val.tipo == TIPO.CADENA or val.tipo ==TIPO.CHARACTER:
+                generador.fPrintString()
+                temporal = generador.agregarTemporal()
+                generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                generador.agregarExpresion(temporal, temporal, '1', '+')
+                generador.guardar_stack(temporal, val.valor)
+                generador.newEnv(entorno.size)
+                generador.callFun('printString')
+                tmp = generador.agregarTemporal()
+                generador.obtener_stack(tmp, 'P')
+                generador.retEnv(entorno.size)
+        generador.agregarPrint('c','10')
 
     def getNodo(self):
-        nodo = NodoReporteArbol("IMPRIMIRLN")
+        nodo = NodoReporteArbol("IMPRIMIR")
         nuevo = NodoReporteArbol("EXPRESIONES")
         unaVez = True
         for i in self.expresion:
@@ -51,7 +71,7 @@ class Imprimirln(NodoAST):
                 nuevo1.agregarHijoNodo(i.getNodo())
                 nuevo.agregarHijoNodo(nuevo1)
             unaVez = False
-        nodo.agregarHijoCadena("println")
+        nodo.agregarHijoCadena("print")
         nodo.agregarHijoCadena("(")
         nodo.agregarHijoNodo(nuevo)
         nodo.agregarHijoCadena(")")
@@ -68,7 +88,6 @@ def obtenerVector(tree, table, vector):
                 lista.append(valor.valor)
         
         return lista
-
 def obtenerStruct(struct):
     cadena = struct.nombre + "( "
     for clave in struct.diccionario:
@@ -82,3 +101,5 @@ def obtenerStruct(struct):
     cadena = cadena[0:-2]
     cadena += ")"
     return cadena
+            
+

@@ -18,6 +18,7 @@ class Imprimir(NodoAST):
     def interpretar(self, entorno):
         self.cadena = ""
         for i in self.expresion:
+            print(i)
             val = i.interpretar(entorno)
             aux = Generador()
             generador = aux.obtenerGen()
@@ -37,17 +38,21 @@ class Imprimir(NodoAST):
                 generador.printFalse()
 
                 generador.colocarLbl(tempLbl)
+                print('--print--')
+                print(val.truelbl)
+                print(val.falselbl)
+                print('--print--')
 
-            elif val.tipo == TIPO.CADENA:
+            elif val.tipo == TIPO.CADENA or val.tipo ==TIPO.CHARACTER:
                 generador.fPrintString()
                 temporal = generador.agregarTemporal()
                 generador.agregarExpresion(temporal, 'P', entorno.size, '+')
                 generador.agregarExpresion(temporal, temporal, '1', '+')
-                generador.setStack(temporal, val.valor)
+                generador.guardar_stack(temporal, val.valor)
                 generador.newEnv(entorno.size)
                 generador.callFun('printString')
                 tmp = generador.agregarTemporal()
-                generador.getStack(tmp, 'P')
+                generador.obtener_stack(tmp, 'P')
                 generador.retEnv(entorno.size)
 
     def getNodo(self):

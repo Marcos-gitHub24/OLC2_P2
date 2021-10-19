@@ -1,3 +1,5 @@
+from TS.Entorno import Entorno
+from TS.Generador import Generador
 from TS.Simbolo import Simbolo
 from Objeto.Primitivo import Primitivo
 from Expresiones.Identificador import Identificador
@@ -22,63 +24,67 @@ class For(NodoAST):
         self.final = final
         self.instrucciones = instrucciones
 
-    def interpretar(self, tree, table):
-        nueva_tabla = TablaSimbolos(table)
-        nueva_tabla.setEntorno("For")
-        tree.agregarTabla(nueva_tabla)
-        valor_inicio = self.inicio.interpretar(tree, nueva_tabla)
+    def interpretar(self, entorno):
+        nuevo_entorno = Entorno(entorno)
+        valor_inicio = self.inicio.interpretar(entorno)
         if(valor_inicio.tipo == TIPO.ERROR):
-            tree.addExcepcion(valor_inicio)
-            return valor_inicio;
-        valor_final = self.final.interpretar(tree, nueva_tabla)
+            #tree.addExcepcion(valor_inicio)
+            return 
+        valor_final = self.final.interpretar(entorno)
         if(valor_final.tipo == TIPO.ERROR):
-            tree.addExcepcion(valor_final)
-            return valor_final;
+            #tree.addExcepcion(valor_final)
+            return 
 
         if(valor_inicio.tipo == TIPO.CADENA):
-            tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
+            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
             return  Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna)
         if(valor_inicio.tipo == TIPO.CHARACTER):
-            tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
+            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
             return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
         if(valor_final.tipo == TIPO.CADENA):
-            tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
+            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
             return  Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna)
         if(valor_final.tipo == TIPO.CHARACTER):
-            tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
+            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
             return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
 
-        asignar = Asignacion(self.id, valor_inicio, None, self.fila, self.columna)
-        asignar.interpretar(tree, nueva_tabla)
-        iterador = valor_inicio.valor
-        condicion = True
-        while iterador <= valor_final.valor:
-            tabla_for = TablaSimbolos(nueva_tabla)
-            tabla_for.setEntorno("For")
-            tree.agregarTabla(tabla_for)
-            for i in self.instrucciones:
-                if isinstance(i, Excepcion):
-                    tree.updateConsola(i.toString())
-                    tree.addExcepcion(i)
-                    continue
-                result = i.interpretar(tree, tabla_for)
-                if isinstance(result, Excepcion):
-                    tree.updateConsola(result.toString())
-                    tree.addExcepcion(result.toString())
-                    continue
-                if isinstance(result, Break):
-                    condicion = False
-                    break
-                if isinstance(result, Continue):
-                    break
-                if isinstance(result, Return):
-                    return result
-            if condicion == False:
-                condicion = True
-                break
-            iterador += 1
-            simbolo = Simbolo(self.id, self.fila, self.columna, Primitivo(TIPO.ENTERO, self.fila, self.columna, iterador))
-            tabla_for.actualizarTabla(simbolo)
+        asignar = Asignacion(self.id, self.inicio, None, self.fila, self.columna)
+        asignar.interpretar(entorno)
+        
+        aux = Generador()
+        generador = aux.obtenerGen()
+        temp_final = generador.agregarTemporal()
+        generador.agregarExpresion(temp_final,valor_final.valor,'','')
+        
+        lbl_for = generador.agregarLabel()
+        generador.colocarLbl(lbl_for)
+
+        guardar = Identificador(self.id, self.fila, self.columna)
+        guardar_interpretar = guardar.interpretar(nuevo_entorno)
+        temp_inicio = guardar_interpretar.valor
+        lbl_instrucciones = generador.agregarLabel()
+        lbl_salida = generador.agregarLabel()
+        lbl_incremento = generador.agregarLabel()
+        generador.agregarIf(temp_inicio,temp_final,'<=',lbl_instrucciones)
+        generador.agregarGoto(lbl_salida)
+        
+        nuevo_entorno.lbl_break = lbl_salida
+        nuevo_entorno.lbl_continue = lbl_incremento
+
+        generador.colocarLbl(lbl_instrucciones)
+        for i in self.instrucciones:
+            i.interpretar(nuevo_entorno)
+        
+        generador.agregarGoto(lbl_incremento)
+        generador.colocarLbl(lbl_incremento)
+        generador.agregarExpresion(temp_inicio,temp_inicio,'1','+')
+        variable = nuevo_entorno.obtenerVariable(self.id)
+        generador.guardar_stack(variable.pos,temp_inicio)
+        generador.agregarGoto(lbl_for)
+        generador.colocarLbl(lbl_salida)
+
+        
+
 
     def getNodo(self):
         nodo = NodoReporteArbol("FOR")

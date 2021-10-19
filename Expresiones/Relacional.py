@@ -60,7 +60,38 @@ class Relacional(NodoAST):
                     bandera = True
                     # return Primitivo(TIPO.BOOLEANO, self.fila, self.columna, float(res_left.getValue()) >= float(res_right.getValue()))
                 elif(res_left.tipo == TIPO.CADENA and res_right.tipo == TIPO.CADENA):
-                    bandera = True
+                    if operador == '==' or operador == '!=':
+                        generador.funCompararStrings()
+                        if self.truelbl == None:
+                            self.truelbl = generador.agregarLabel()
+                        if self.falselbl == None:
+                            self.falselbl = generador.agregarLabel()
+                        
+                        primera = generador.agregarTemporal()
+                        generador.agregarExpresion(primera,'P',entorno.size,'+')
+                        generador.agregarExpresion(primera,primera,'1','+')
+                        generador.guardar_stack(primera,res_left.valor)
+
+                        segunda = generador.agregarTemporal()
+                        generador.agregarExpresion(segunda,'P',entorno.size,'+')
+                        generador.agregarExpresion(segunda,segunda,'2','+')
+                        generador.guardar_stack(segunda,res_right.valor)
+
+                        generador.agregarExpresion('P','P',entorno.size,'+')
+                        generador.callFun('compararStrings')
+                        result = generador.agregarTemporal()
+                        generador.obtener_stack(result, 'P')
+                        generador.agregarExpresion('P','P',entorno.size,'-')
+                        if operador == '==':
+                            generador.agregarIf(result, '1', '==', self.truelbl)
+                            generador.agregarGoto(self.falselbl)
+                        else:
+                            generador.agregarIf(result, '1', '==', self.falselbl)
+                            generador.agregarGoto(self.truelbl)
+                        resultado.truelbl = self.truelbl
+                        resultado.falselbl = self.falselbl
+                        return resultado
+                    
                     # return Primitivo(TIPO.BOOLEANO, self.fila, self.columna, str(res_left.getValue()) >= str(str(res_right.getValue())))
                 elif(res_left.tipo == TIPO.NULO or res_right.tipo == TIPO.NULO):
                     bandera = True

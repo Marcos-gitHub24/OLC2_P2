@@ -1,13 +1,14 @@
 from Expresiones.Struct import Struct
 from Objeto.Primitivo import Primitivo
-from os import times
-from re import T
+
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from TS.Excepcion import Excepcion
 from Abstract.NodoAST import NodoAST
+from TS.Generador import Generador
 from TS.Simbolo import Simbolo
 from TS.Tipo import TIPO
+from Abstract.Return import Return
 
 
 
@@ -19,56 +20,100 @@ class Asignacion(NodoAST):
         self.fila = fila
         self.columna = columna
 
-    def interpretar(self, tree, table):
-        result = None
+    def interpretar(self, entorno):
+        generador = Generador()
+        generador = generador.obtenerGen()
+        es_struct = False
+        esta_heap = False
         if self.tipo == None:
             if self.expresion != None and isinstance(self.expresion, Struct) == False:
-                value = self.expresion.interpretar(tree, table)
-                if isinstance(value, Struct) == False:
-                    if value.tipo==TIPO.ERROR:
-                        tree.addExcepcion(value)
-                        return value
-                    simbolo = Simbolo(self.identificador, self.fila, self.columna, value)
-                    result = table.actualizarTabla(simbolo)     # Si no se encuentra el simbolo, lo agrega 
-                else:
-                    simbolo = Simbolo(self.identificador, self.fila, self.columna, value)
-                    result = table.actualizarTabla(simbolo)
-            elif self.expresion != None and isinstance(self.expresion, Struct) == True:
-                simbolo = Simbolo(self.identificador, self.fila, self.columna, self.expresion)
-                result = table.actualizarTabla(simbolo)
+                valor = self.expresion.interpretar(entorno)
+                if isinstance(valor, Struct) == False:
+                    if valor.tipo == TIPO.ERROR:
+                        return 
+                variable = entorno.obtenerVariable(self.identificador)
+                if variable == None:
+                    if valor.tipo == TIPO.CADENA:
+                        esta_heap = True
+                    if valor.tipo == TIPO.STRUCT:
+                        es_struct = True
+                        esta_heap = True
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
+                    variable.tipo = valor.tipo
+            else: # si es struct 
+                valor = self.expresion
+                variable = entorno.obtenerVariable(self.identificador)
+                if variable == None:
+                    if valor.tipo == TIPO.CADENA:
+                        esta_heap = True
+                    if valor.tipo == TIPO.STRUCT:
+                        es_struct = True
+                        esta_heap = True
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
+                    variable.tipo = valor.tipo
+            posicion = variable.pos
+            variable.tipo = valor.tipo
+            if not variable.isGlobal:
+                posicion = generador.agregarTemporal()
+                generador.agregarExpresion(posicion,'P',variable.pos,'+')
+            if valor.tipo == TIPO.BOOLEANO:
+                lbl = generador.agregarLabel()
+                generador.colocarLbl(valor.truelbl)
+                generador.guardar_stack(posicion, '1')
+                generador.agregarGoto(lbl)
+                generador.colocarLbl(valor.falselbl)
+                generador.guardar_stack(posicion, '0')
+                generador.colocarLbl(lbl)
             else:
-                obtener = table.getTabla(self.identificador)
-                if obtener == None:
-                    simbolo = Simbolo(self.identificador, self.fila, self.columna, Primitivo(TIPO.NULO, self.fila, self.columna, None))
-                    result = table.actualizarTabla(simbolo)                     
+                generador.guardar_stack(posicion, valor.valor)
+                
         else:
             if self.expresion != None and isinstance(self.expresion, Struct) == False:
-                value = self.expresion.interpretar(tree, table)
-                if value.tipo==TIPO.ERROR:
-                    tree.addExcepcion(value)
-                    return value;
-                if value.tipo == self.tipo:
-                    simbolo = Simbolo(self.identificador, self.fila, self.columna, value)
-                    result = table.actualizarTabla(simbolo)
+                valor = self.expresion.interpretar(entorno)
+                if valor.tipo == TIPO.ERROR:
+                    return 
+                if valor.tipo == self.tipo:
+                    variable = entorno.obtenerVariable(self.identificador)
+                    if variable == None:
+                        if valor.tipo == TIPO.CADENA:
+                            esta_heap = True
+                        if valor.tipo == TIPO.STRUCT:
+                            es_struct = True
+                            esta_heap = True
+                        variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
                 else:
-                    tree.updateConsola("No son del mismo tipo") 
-                    tree.addExcepcion(Excepcion(TIPO.ERROR, f"Semantico, No son del mismo tipo", self.fila, self.columna))
-                    return None
-            elif self.expresion != None and isinstance(self.expresion, Struct):
-                simbolo = Simbolo(self.identificador, self.fila, self.columna, self.expresion)
-                result = table.actualizarTabla(simbolo)
-                
+                    print('No son del mismo tipo')
+                    return
+            elif self.expresion !=None and isinstance(self.expresion,Struct):
+                valor = self.expresion
+                variable = entorno.obtenerVariable(self.identificador)
+                if variable == None:
+                    if valor.tipo == TIPO.CADENA:
+                        esta_heap = True
+                    if valor.tipo == TIPO.STRUCT:
+                        es_struct = True
+                        esta_heap = True
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
+            variable.tipo = valor.tipo
+            posicion = variable.pos
+            if not variable.isGlobal:
+                posicion = generador.agregarTemporal()
+                generador.agregarExpresion(posicion,'P',variable.pos,'+')
+            if valor.tipo == TIPO.BOOLEANO:
+                lbl = generador.agregarLabel()
+                generador.colocarLbl(valor.truelbl)
+                generador.guardar_stack(posicion, '1')
+                generador.agregarGoto(lbl)
+                generador.colocarLbl(valor.falselbl)
+                generador.guardar_stack(posicion, '0')
+                generador.colocarLbl(lbl)
             else:
-                 obtener = table.getTabla(self.identificador)
-                 if obtener == None:
-                    simbolo = Simbolo(self.identificador, self.fila, self.columna, Primitivo(TIPO.NULO, self.fila, self.columna, None))
-                    result = table.actualizarTabla(simbolo)          
-           
-        if isinstance(result,Excepcion): 
-            tree.addExcepcion(result)
-            return result
+                generador.guardar_stack(posicion, valor.valor)
+                
+
+
         
-        return None
+        
 
     def getNodo(self):
         if self.tipo == None and self.expresion != None:
