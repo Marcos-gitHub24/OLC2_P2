@@ -38,7 +38,7 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.STRUCT:
                         es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct, valor.arreglo)
                     variable.tipo = valor.tipo
             else: # si es struct 
                 valor = self.expresion

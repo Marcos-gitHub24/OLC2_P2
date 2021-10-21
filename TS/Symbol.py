@@ -1,7 +1,7 @@
 from Abstract.Return import *
 
 class Symbol:
-    def __init__(self, symbolID, symbolType, position, globalVar, inHeap, struct):
+    def __init__(self, symbolID, symbolType, position, globalVar, inHeap, struct, arreglo):
         self.id = symbolID
         self.tipo = symbolType
         self.pos = position
@@ -9,3 +9,4 @@ class Symbol:
         self.inHeap = inHeap
         self.value = None
         self.struct = struct
+        self.arreglo = arreglo

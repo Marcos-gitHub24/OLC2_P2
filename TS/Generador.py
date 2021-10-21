@@ -59,7 +59,7 @@ class Generador:
         if(self.es_nativa):
             if(self.nativas == ''):
                 self.nativas = self.nativas + '/*-----NATIVES-----*/\n'
-            self.nativas = self.nativas + '\t' + codigo
+            self.nativas = self.nativas + codigo
         elif(self.es_funcion):
             if(self.funciones == ''):
                 self.funciones = self.funciones + '/*-----FUNCS-----*/\n'
@@ -78,18 +78,12 @@ class Generador:
     def addSpace(self):
         self.agregarCodigo("\n")
 
-    ########################
-    # Manejo de Temporales
-    ########################
     def agregarTemporal(self):
         temp = f't{self.countTemp}'
-        self.countTemp += 1
+        self.countTemp += 1             
         self.temporales.append(temp)
         return temp
 
-    #####################
-    # Manejo de Labels
-    #####################
     def agregarLabel(self):
         label = f'L{self.countLabel}'
         self.countLabel += 1
@@ -98,27 +92,15 @@ class Generador:
     def colocarLbl(self, label):
         self.agregarCodigo(f'{label}:\n')
 
-    ###################
-    # GOTO
-    ###################
     def agregarGoto(self, label):
         self.agregarCodigo(f'goto {label};\n')
     
-    ###################
-    # IF
-    ###################
     def agregarIf(self, left, right, op, label):
         self.agregarCodigo(f'if {left} {op} {right} {{goto {label};}}\n')
 
-    ###################
-    # EXPRESIONES
-    ###################
     def agregarExpresion(self, result, left, right, op):
         self.agregarCodigo(f'{result}={left}{op}{right};\n')
     
-    ###################
-    # FUNCS
-    ###################
     def addBeginFunc(self, id):
         if(not self.es_nativa):
             self.es_funcion = True
@@ -129,18 +111,13 @@ class Generador:
         if(not self.es_nativa):
             self.es_funcion = False
 
-    ###############
-    # STACK
-    ###############
     def guardar_stack(self, pos, value):
         self.agregarCodigo(f'stack[int({pos})]={value};\n')
     
     def obtener_stack(self, place, pos):
         self.agregarCodigo(f'{place}=stack[int({pos})];\n')
 
-    #############
-    # ENVS
-    #############
+    
     def newEnv(self, size):
         self.agregarCodigo(f'P=P+{size};\n')
 
@@ -150,9 +127,6 @@ class Generador:
     def retEnv(self, size):
         self.agregarCodigo(f'P=P-{size};\n')
 
-    ###############
-    # HEAP
-    ###############
     def guardar_heap(self, pos, value):
         self.agregarCodigo(f'heap[int({pos})]={value};\n')
 
@@ -184,9 +158,6 @@ class Generador:
         self.agregarPrint("c", 115)
         self.agregarPrint("c", 101)
     
-    ##############
-    # NATIVES
-    ##############
     def fPrintString(self):
         if(self.printString):
             return

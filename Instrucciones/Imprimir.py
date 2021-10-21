@@ -24,6 +24,8 @@ class Imprimir(NodoAST):
             generador = aux.obtenerGen()
             if val.tipo == TIPO.ENTERO:
                 generador.agregarPrint("d", val.valor)
+                if val.falselbl != None:
+                    generador.colocarLbl(val.falselbl)
             elif val.tipo == TIPO.DECIMAL:
                 generador.agregarPrint("g", val.valor)
             elif val.tipo == TIPO.BOOLEANO:

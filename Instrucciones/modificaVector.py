@@ -1,5 +1,5 @@
-from math import e
-import re
+from TS.Generador import Generador
+from Abstract.Return import Return
 from Objeto.Primitivo import Primitivo
 from os import times
 from re import T
@@ -20,75 +20,59 @@ class Modifica(NodoAST):
         self.nuevo = nuevo
         self.columna = columna
 
-    def interpretar(self, tree, table):
+    def interpretar(self, entorno):
         lista = []
-        nueva_lista  = []
+        aux = Generador()
+        generador = aux.obtenerGen()
+        nuevo_valor = self.nuevo.interpretar(entorno)
         for i in self.lista:
-            result = i.interpretar(tree, table)
+            result = i.interpretar(entorno)
             if(result.tipo == TIPO.CADENA):
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna))
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna)
             if(result.tipo == TIPO.CHARACTER):
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna))
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna)
             if(result.tipo == TIPO.BOOLEANO):
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna))
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna)
             if(result.tipo == TIPO.DECIMAL):
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna))
-                return  Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna)
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna))
+                return  Excepcion(TIPO.ERROR, f"No puede adadsadadasdasd un indice decimal",self.fila,self.columna)
             lista.append(result.valor)
-
-        simbolo = table.getTabla(self.identificador)
-        nuevo_valor = self.nuevo.interpretar(tree, table)
-        if isinstance(nuevo_valor,Excepcion): return nuevo_valor
-        if simbolo == None:
-            tree.addExcepcion(Excepcion("Semantico", "Variable " + self.identificador + " no encontrada.", self.fila, self.columna))
-            return Excepcion("Semantico", "Variable " + self.identificador + " no encontrada.", self.fila, self.columna)
-        tmp = simbolo.getValor()
-        varibale = tmp.interpretar(tree, table)
-        if isinstance(varibale.valor, list) == False:
-            tree.addExcepcion(Excepcion("Semantico", "No esta accediendo a un arreglo", self.fila, self.columna))
-            return Excepcion("Semantico", "No esta accediendo a un arreglo", self.fila, self.columna)
-        original = varibale
-        primitivo_original = varibale
-        vector_anterior = []
-        if varibale.tipo == TIPO.ARREGLO:
-            una_dimension = True
-            for i in varibale.valor:
-                verificar = i.interpretar(tree, table)
-                if isinstance(verificar.valor, list):
-                    una_dimension = False
+        variable = entorno.obtenerVariable(self.identificador)
+        print("-----variable---")
+        print(variable.arreglo)
+        pivote = generador.agregarTemporal()
+        apunta_heap = generador.agregarTemporal()
+        generador.obtener_stack(pivote,variable.pos)
+        tamano = generador.agregarTemporal()
+        indice = generador.agregarTemporal()
+        extra = generador.agregarLabel()
+        #resultado.falselbl = extra
+        for i in lista:
+            salida = generador.agregarLabel()
+            error = generador.agregarLabel()
             
-            if una_dimension == True:
-                if lista[0] <= len(varibale.valor) and lista[0] >0:
-                    varibale.valor[lista[0]-1] = nuevo_valor
-                    primitivo_original =  varibale
-                    simbolo.setValor(primitivo_original)
-                    table.actualizarTabla(simbolo)
-                else:
-                    tree.addExcepcion(Excepcion("Semantico", "ERROR EN UNA DIMENSION", self.fila, self.columna))
-                    return Excepcion("Semantico", "ERROR EN UNA DIMENSION", self.fila, self.columna)
+            generador.obtener_heap(tamano,pivote)
+            generador.agregarExpresion(indice,i,'','')
 
-            else:
-                for i in lista:
-                    if i <= len(varibale.valor) and i>0:
-                        ver = varibale.valor[i-1].interpretar(tree, table)
-                        vector_anterior = varibale.valor
-                        if isinstance(ver.valor, list):
-                            varibale = ver;
-                        else:
-                            if i == lista[len(lista)-1]:
-                                nueva_lista = obtenerVector(tree, table, original, ver.valor, nuevo_valor.valor, vector_anterior)
-                            else:
-                                tree.addExcepcion(Excepcion("Semantico", "Indice incorrecto para acceder al vector", self.fila, self.columna))
-                                return Excepcion("Semantico", "Indice incorrecto para acceder al vector", self.fila, self.columna)
-                    else:
-                        tree.addExcepcion(Excepcion("Semantico", "Indice incorrecto para acceder al vector", self.fila, self.columna))
-                        return Excepcion("Semantico", "Indice incorrecto para acceder al vector", self.fila, self.columna)
-                primitivo_original = nueva_lista
-                simbolo.setValor(primitivo_original)
-                table.actualizarTabla(simbolo)
+            generador.agregarIf(indice,tamano,'>',error)
+            generador.agregarExpresion(apunta_heap,pivote,indice,'+')
+            generador.obtener_heap(pivote,apunta_heap)
+            
+            generador.agregarGoto(salida)
+            generador.colocarLbl(error)
+            generador.agregarPrint('c','101')
+            generador.agregarPrint('c','114')
+            generador.agregarPrint('c','114')
+            generador.agregarPrint('c','111')
+            generador.agregarPrint('c','114')
+            generador.agregarGoto(extra)
+            generador.colocarLbl(salida)
+        generador.guardar_heap(apunta_heap,nuevo_valor.valor)
+        generador.colocarLbl(extra)
+        #return Return(pivote,TIPO.ENTERO,True)
         
     def getNodo(self):
         nodo = NodoReporteArbol("MODIFICA_VECTOR")

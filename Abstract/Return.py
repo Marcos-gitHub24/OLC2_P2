@@ -4,5 +4,6 @@ class Return:
         self.tipo = retType
         self.auxType = auxType
         self.isTemp = isTemp
-        self.truelbl = ''
-        self.falselbl = ''
+        self.arreglo = None
+        self.truelbl = None
+        self.falselbl = None

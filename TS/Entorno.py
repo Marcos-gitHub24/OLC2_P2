@@ -16,15 +16,16 @@ class Entorno:
             self.lbl_continue = self.prev.lbl_continue
         
         self.variables = {}
+        self.arreglos = {}
         self.functions = {}
         self.structs = {}
     
-    def guardarVariable(self, identificacion, tipo, inHeap, struct):
+    def guardarVariable(self, identificacion, tipo, inHeap, struct, arreglo):
         if identificacion in self.variables.keys():
             print("Variable ya existe")
             # agregar error a una tabla
         else:
-            simbolo = Symbol(identificacion, tipo, self.size, self.prev == None, inHeap, struct)
+            simbolo = Symbol(identificacion, tipo, self.size, self.prev == None, inHeap, struct, arreglo)
             self.size += 1
             self.variables[identificacion] = simbolo
         return self.variables[identificacion]

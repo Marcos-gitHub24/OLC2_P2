@@ -57,6 +57,29 @@ class Primitivo(NodoAST):
             print('--primitivo--')
             return resultado
 
+        elif self.tipo == TIPO.ARREGLO:
+            temp = generador.agregarTemporal()
+            generador.agregarExpresion(temp, 'H', '', '')
+            pivote = generador.agregarTemporal()
+            generador.agregarExpresion(pivote,temp,'1','+')
+            tamano = len(self.valor) + 1
+            generador.agregarExpresion('H','H',str(tamano),'+')
+            generador.guardar_heap(temp,str(tamano-1))
+            resultado = Return(temp,TIPO.ARREGLO,True)
+            for i in self.valor:
+                intepretado = i.interpretar(entorno)
+                generador.guardar_heap(pivote,intepretado.valor)
+                generador.agregarExpresion(pivote,pivote,'1','+')
+            #generador.guardar_heap('H', '-1')
+            #generador.sumar_heap()
+            arreglo = obtenerVector(entorno,self.valor)
+            print('------------------------------')
+            print(arreglo)
+            resultado.arreglo = arreglo
+            return resultado
+
+
+
 
     def getNodo(self):
         
@@ -92,14 +115,15 @@ class Primitivo(NodoAST):
     def toString(self):
         return str(self.valor)
 
-'''
-class Primitivo(Objeto):
-    def __init__(self, tipo, valor):
-        self.tipo = tipo
-        self.valor=valor
-
-    
-
-    
-'''
+def obtenerVector(entorno, vector):
+        lista = []
+        for i in vector:
+            #valor = i.interpretar(entorno)
+            if isinstance(i.valor,list):
+               lista.append(obtenerVector(entorno,i.valor))
+            else:
+                lista.append(i.tipo)
+        return lista
+        
+        
 
