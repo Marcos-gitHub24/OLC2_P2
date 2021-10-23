@@ -53,7 +53,7 @@ class ForCadena(NodoAST):
             #guardar = Identificador(self.id, self.fila, self.columna)
             #guardar_interpretar = guardar.interpretar(nuevo_entorno)
             
-            simbolo = nuevo_entorno.guardarVariable(self.id, valor_inicio.tipo, True, False)
+            simbolo = nuevo_entorno.guardarVariable(self.id, valor_inicio.tipo, True, False,None)
             heap = generador.agregarTemporal()
             #temp_inicio = guardar_interpretar.valor
             temp_inicio = valor_inicio.valor

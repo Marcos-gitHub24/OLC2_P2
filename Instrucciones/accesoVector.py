@@ -47,25 +47,35 @@ class Acceso(NodoAST):
         indice = generador.agregarTemporal()
         #extra = generador.agregarLabel()
         arreglo_tipo = variable.arreglo
-        print('----acceso-----------')
-        print(variable.arreglo[0])
         contador = 1
         tipo_retorno = TIPO.ENTERO
         for i in arreglo_tipo:
-            if isinstance(i,list) and contador != len(lista):
+            if isinstance(i,list) == True and contador != len(lista):
                 arreglo_tipo = variable.arreglo[int(lista[contador-1])-1]
+            elif isinstance(i,list) == True and contador == len(lista):
+                print(contador)
+                if int(lista[contador-1]) >= len(arreglo_tipo):
+                    continue
+                arreglo_tipo = variable.arreglo[int(lista[contador-1])-1]
+                break
+            elif isinstance(i,list)== False and contador == len(lista):
+                if int(lista[contador-1]) >= len(arreglo_tipo):
+                    tipo_retorno = arreglo_tipo[len(arreglo_tipo)-1]
+                else:
+                    tipo_retorno = arreglo_tipo[int(lista[contador-1])-1]
+                break
             elif isinstance(i,list) and contador == len(lista):
                 tipo_retorno = TIPO.ARREGLO                 # tengo que arreglar cuando el indice sea mayor al tamaño
-            elif not isinstance(i,list) and contador == len(lista):
-                tipo_retorno = arreglo_tipo[int(lista[contador-1])-1]
             contador += 1
 
         resultado = Return(pivote,tipo_retorno,True)
+        extra = generador.agregarLabel()
+        
         #resultado.falselbl = extra
         for i in lista:
+            
             salida = generador.agregarLabel()
             error = generador.agregarLabel()
-            
             generador.obtener_heap(tamano,pivote)
             generador.agregarExpresion(indice,i,'','')
 
@@ -80,8 +90,10 @@ class Acceso(NodoAST):
             generador.agregarPrint('c','114')
             generador.agregarPrint('c','111')
             generador.agregarPrint('c','114')
-            #generador.agregarGoto(extra)
+            generador.agregarExpresion(pivote,'0','','')
+            generador.agregarGoto(extra)
             generador.colocarLbl(salida)
+        generador.colocarLbl(extra)
         #return Return(pivote,TIPO.ENTERO,True)
         return resultado
         

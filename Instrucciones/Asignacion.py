@@ -49,7 +49,7 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.STRUCT:
                         es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct,valor.arreglo)
                     variable.tipo = valor.tipo
             posicion = variable.pos
             variable.tipo = valor.tipo
@@ -80,7 +80,7 @@ class Asignacion(NodoAST):
                         if valor.tipo == TIPO.STRUCT:
                             es_struct = True
                             esta_heap = True
-                        variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
+                        variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct, valor.arreglo)
                 else:
                     print('No son del mismo tipo')
                     return
@@ -93,7 +93,7 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.STRUCT:
                         es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct)
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct,valor.arreglo)
             variable.tipo = valor.tipo
             posicion = variable.pos
             if not variable.isGlobal:

@@ -140,7 +140,7 @@ class Generador:
     def agregarPrint(self, type, value):
         if type == 'd':
             self.agregarCodigo(f'fmt.Printf("%{type}", int({value}));\n')
-        elif type == 'g':
+        elif type == 'f':
             self.agregarCodigo(f'fmt.Printf("%{type}", float64({value}));\n')
         elif type == 'c':
             self.agregarCodigo(f'fmt.Printf("%{type}", int({value}));\n')

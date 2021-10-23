@@ -49,7 +49,7 @@ class For(NodoAST):
             return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
 
         asignar = Asignacion(self.id, self.inicio, None, self.fila, self.columna)
-        asignar.interpretar(entorno)
+        asignar.interpretar(nuevo_entorno)
         
         aux = Generador()
         generador = aux.obtenerGen()

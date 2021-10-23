@@ -20,6 +20,7 @@ class Identificador(NodoAST):
         variable = entorno.obtenerVariable(self.identificador)
         print('-------iddididi')
         print(variable.tipo)
+        print(variable.arreglo)
         if variable == None:
             print('No hay variable')
             return
@@ -32,7 +33,9 @@ class Identificador(NodoAST):
         generador.obtener_stack(temporal,posicion)
 
         if variable.tipo != TIPO.BOOLEANO:
-            return Return(temporal, variable.tipo, True)
+            resultado = Return(temporal,variable.tipo,True)
+            resultado.arreglo = variable.arreglo
+            return resultado
         if self.truelbl == None:
             self.truelbl = generador.agregarLabel()
         if self.falselbl == None:

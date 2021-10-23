@@ -25,7 +25,7 @@ class Imprimirln(NodoAST):
             if val.tipo == TIPO.ENTERO:
                 generador.agregarPrint("d", val.valor)
             elif val.tipo == TIPO.DECIMAL:
-                generador.agregarPrint("g", val.valor)
+                generador.agregarPrint("f", val.valor)
                 
             elif val.tipo == TIPO.BOOLEANO:
                 tempLbl = generador.agregarLabel()     
@@ -51,6 +51,14 @@ class Imprimirln(NodoAST):
                 tmp = generador.agregarTemporal()
                 generador.obtener_stack(tmp, 'P')
                 generador.retEnv(entorno.size)
+            elif val.tipo == TIPO.ARREGLO:
+                #heap = generador.agregarTemporal()
+                #generador.obtener_stack(heap,val.valor)
+                print('----------------------------------------------')
+                print(val)
+                generador.agregarPrint('c','91')
+                imprimirVector(generador,val.arreglo,val.valor,entorno)
+                generador.agregarPrint('c','93');
         generador.agregarPrint('c','10')
 
     def getNodo(self):
@@ -88,6 +96,70 @@ def obtenerVector(tree, table, vector):
                 lista.append(valor.valor)
         
         return lista
+def imprimirVector(generador,arreglo,heap,entorno):
+    coma = 0
+    #generador.agregarPrint('c','91');
+    tamano = generador.agregarTemporal()
+    generador.obtener_heap(tamano,heap)
+    generador.agregarExpresion(heap,heap,'1','+')
+    contador = generador.agregarTemporal()
+    generador.agregarExpresion(contador,'0','','');
+    recorre_lbl = generador.agregarLabel()
+    salida_lbl = generador.agregarLabel()
+    generador.colocarLbl(recorre_lbl)
+    generador.agregarIf(contador,tamano,'==',salida_lbl)
+    
+    for i in arreglo:
+        if isinstance(i,list):
+            nuevo = i
+            #generador.agregarExpresion(heap,heap,'1','+')
+            aux = generador.agregarTemporal()
+            generador.agregarExpresion(aux,heap,'','')
+            generador.obtener_heap(heap,heap)
+            
+            #generador.agregarPrint('c','44');
+            generador.agregarPrint('c','91')
+            imprimirVector(generador,nuevo,heap,entorno)
+            generador.agregarPrint('c','93')
+            if coma != len(arreglo)-1:
+                    generador.agregarPrint('c','44');
+            #generador.agregarPrint('c','44');
+            generador.agregarExpresion(heap,aux,'','')
+            generador.agregarExpresion(heap,heap,'1','+')
+            generador.agregarExpresion(contador,contador,'1','+')
+        else:
+            generador.agregarExpresion(contador,contador,'1','+')
+            imprime = generador.agregarTemporal()
+            generador.obtener_heap(imprime,heap)
+            if i == TIPO.ENTERO:
+                generador.agregarPrint('d',imprime);
+                if coma != len(arreglo)-1:
+                    generador.agregarPrint('c','44');
+            elif i == TIPO.DECIMAL:
+                generador.agregarPrint('f',imprime);
+                if coma != len(arreglo)-1:
+                    generador.agregarPrint('c','44');
+            elif i == TIPO.CADENA:
+                generador.fPrintString()
+                temporal = generador.agregarTemporal()
+                generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                generador.agregarExpresion(temporal, temporal, '1', '+')
+                generador.guardar_stack(temporal, imprime)
+                generador.newEnv(entorno.size)
+                generador.callFun('printString')
+                tmp = generador.agregarTemporal()
+                generador.obtener_stack(tmp, 'P')
+                generador.retEnv(entorno.size)
+                if coma != len(arreglo)-1:
+                    generador.agregarPrint('c','44');
+            generador.agregarExpresion(heap,heap,'1','+')
+        coma += 1
+    
+    #generador.agregarExpresion(heap,heap,'1','+')
+    generador.agregarGoto(recorre_lbl)
+    generador.colocarLbl(salida_lbl)
+    #generador.agregarPrint('c','93');
+    
 def obtenerStruct(struct):
     cadena = struct.nombre + "( "
     for clave in struct.diccionario:
