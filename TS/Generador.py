@@ -20,7 +20,12 @@ class Generador:
         self.concat = False
         self.potenciaString = False
         self.compStrings = False
-        
+        self.parseInt = False
+        self.parseFloat = False
+        self.toUpper = False
+        self.toLower = False
+        self.trunc = False
+
     def cleanAll(self):
         # Contadores
         self.countTemp = 0
@@ -41,7 +46,7 @@ class Generador:
     # CODE
     #############
     def getHeader(self):
-        ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt"\n)\n\n'
+        ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt"\n\t"math"\n)\n\n'
         if len(self.temporales) > 0:
             ret += 'var '
             for temp in range(len(self.temporales)):
@@ -136,12 +141,15 @@ class Generador:
     def sumar_heap(self):
         self.agregarCodigo('H=H+1;\n')
 
+    def modulo(self,temporal,pos1,pos2):
+        self.agregarCodigo(f'{temporal}=math.Mod({pos1},{pos2});\n')
+
     # INSTRUCCIONES
     def agregarPrint(self, type, value):
         if type == 'd':
             self.agregarCodigo(f'fmt.Printf("%{type}", int({value}));\n')
         elif type == 'f':
-            self.agregarCodigo(f'fmt.Printf("%{type}", float64({value}));\n')
+            self.agregarCodigo(f'fmt.Printf("%{type}", {value});\n')
         elif type == 'c':
             self.agregarCodigo(f'fmt.Printf("%{type}", int({value}));\n')
     
@@ -380,6 +388,190 @@ class Generador:
         self.colocarLbl(lbl_false)
         self.guardar_stack('P','0')
         self.colocarLbl(lbl_salida)
+
+        self.addEndFunc()
+        self.es_nativa = False
+
+    def funParseInt(self):
+        if (self.parseInt):
+            return
+        self.parseInt = True
+        self.es_nativa = True
+        self.addBeginFunc('parseInt')
+
+        resultado = self.agregarTemporal()
+        self.agregarExpresion(resultado,'0','','')
+        referencia = self.agregarTemporal()
+        self.agregarExpresion(referencia,'P','1','+')
+        heap = self.agregarTemporal()
+        self.obtener_stack(heap,referencia)
+
+        lbl_while = self.agregarLabel()
+        salida = self.agregarLabel()
+        
+        self.colocarLbl(lbl_while)
+        letra = self.agregarTemporal()
+        self.obtener_heap(letra,heap)
+        self.agregarIf(letra,'-1','==',salida)
+        self.agregarExpresion(resultado,resultado,'10','*')
+        resta = self.agregarTemporal()
+        self.agregarExpresion(resta,letra,'48','-')
+        self.agregarExpresion(resultado,resultado,resta,'+')
+        self.agregarExpresion(heap,heap,'1','+')
+        self.agregarGoto(lbl_while)
+
+        self.colocarLbl(salida)
+        self.guardar_stack('P',resultado)
+
+        self.addEndFunc()
+        self.es_nativa = False
+
+    def funParseFloat(self):
+        if (self.parseFloat):
+            return
+        self.parseFloat = True
+        self.es_nativa = True
+        self.addBeginFunc('parseFloat')
+
+        resultado = self.agregarTemporal()
+        decimales = self.agregarTemporal()
+        division_decimal = self.agregarTemporal()
+        contador_decimal = self.agregarTemporal()
+        #multiplica = self.agregarTemporal()
+        divide = self.agregarTemporal()
+        referencia = self.agregarTemporal()
+        heap = self.agregarTemporal()
+
+        primer_while = self.agregarLabel()
+        segundo_while = self.agregarLabel()
+        salida = self.agregarLabel()
+
+        self.agregarExpresion(resultado,'0','','')
+        self.agregarExpresion(decimales,'0','','')
+        self.agregarExpresion(division_decimal,'0','','')
+        self.agregarExpresion(contador_decimal,'0','','')
+        #self.agregarExpresion(multiplica,'0','','')
+        self.agregarExpresion(divide,'1','','')
+        self.agregarExpresion(referencia,'P','1','+')
+        self.obtener_stack(heap,referencia)
+
+        self.colocarLbl(primer_while)
+        valor_heap = self.agregarTemporal()
+        self.obtener_heap(valor_heap,heap)
+        self.agregarIf(valor_heap,'-1','==',salida)
+        self.agregarIf(valor_heap,'46','==',segundo_while)
+
+        self.agregarExpresion(resultado,resultado,'10','*')
+        resta = self.agregarTemporal()
+        self.agregarExpresion(resta,valor_heap,'48','-')
+        self.agregarExpresion(resultado,resultado,resta,'+')
+        self.agregarExpresion(heap,heap,'1','+')
+        self.agregarGoto(primer_while)
+
+        self.colocarLbl(segundo_while)
+        self.agregarExpresion(heap,heap,'1','+')
+        self.obtener_heap(valor_heap,heap)
+        self.agregarIf(valor_heap,'-1','==',salida)
+        resta_dos = self.agregarTemporal()
+        self.agregarExpresion(resta_dos,valor_heap,'48','-')
+        self.agregarExpresion(divide,divide,'10','*')
+        self.agregarExpresion(division_decimal,resta_dos,divide,'/')
+        self.agregarExpresion(decimales,decimales,division_decimal,'+')
+        self.agregarExpresion(contador_decimal,contador_decimal,'1','+')
+        self.agregarGoto(segundo_while)
+
+        self.colocarLbl(salida)
+        self.agregarExpresion(resultado,resultado,decimales,'+')
+        self.guardar_stack('P',resultado)
+
+        self.addEndFunc()
+        self.es_nativa = False
+
+    def funToUpper(self):
+        if (self.toUpper):
+            return
+        self.toUpper = True
+        self.es_nativa = True
+        self.addBeginFunc('toUpper')
+
+        referencia = self.agregarTemporal()
+        self.agregarExpresion(referencia,'P','1','+')
+        heap = self.agregarTemporal()
+        self.obtener_stack(heap,referencia)
+
+        lbl_while = self.agregarLabel()
+        salida = self.agregarLabel()
+
+        self.colocarLbl(lbl_while)
+        valor_heap = self.agregarTemporal()
+        self.obtener_heap(valor_heap,heap)
+        self.agregarIf(valor_heap,'-1','==',salida)
+        letra = self.agregarTemporal()
+        self.agregarExpresion(letra,valor_heap,'32','-')
+        self.guardar_heap(heap,letra)
+        self.agregarExpresion(heap,heap,'1','+')
+        self.agregarGoto(lbl_while)
+        self.colocarLbl(salida)
+
+        self.addEndFunc()
+        self.es_nativa = False
+
+    def funToLower(self):
+        if (self.toLower):
+            return
+        self.toLower = True
+        self.es_nativa = True
+        self.addBeginFunc('toLower')
+
+        referencia = self.agregarTemporal()
+        self.agregarExpresion(referencia,'P','1','+')
+        heap = self.agregarTemporal()
+        self.obtener_stack(heap,referencia)
+
+        lbl_while = self.agregarLabel()
+        salida = self.agregarLabel()
+
+        self.colocarLbl(lbl_while)
+        valor_heap = self.agregarTemporal()
+        self.obtener_heap(valor_heap,heap)
+        self.agregarIf(valor_heap,'-1','==',salida)
+        letra = self.agregarTemporal()
+        self.agregarExpresion(letra,valor_heap,'32','+')
+        self.guardar_heap(heap,letra)
+        self.agregarExpresion(heap,heap,'1','+')
+        self.agregarGoto(lbl_while)
+        self.colocarLbl(salida)
+
+        self.addEndFunc()
+        self.es_nativa = False
+
+    def funcTrunc(self):
+        if (self.trunc):
+            return
+        self.trunc = True
+        self.es_nativa = True
+        self.addBeginFunc('trunc')
+
+        referencia = self.agregarTemporal()
+        self.agregarExpresion(referencia,'P','1','+')
+        stack = self.agregarTemporal()
+        self.obtener_stack(stack,referencia)
+
+        negativo = self.agregarLabel()
+        salida = self.agregarLabel()
+
+        self.agregarIf(stack,'0','<',negativo)
+        modulo = self.agregarTemporal()
+        self.modulo(modulo,stack,'1')
+        #self.agregarExpresion(stack,stack,modulo,'-')
+        self.agregarGoto(salida)
+
+        self.colocarLbl(negativo)
+        self.modulo(modulo,stack,'-1')
+        #self.agregarExpresion(stack,stack,modulo,'-')
+        self.colocarLbl(salida)
+        self.agregarExpresion(stack,stack,modulo,'-')
+        self.guardar_stack('P',stack)
 
         self.addEndFunc()
         self.es_nativa = False

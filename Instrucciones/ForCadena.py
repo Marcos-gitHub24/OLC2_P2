@@ -1,4 +1,5 @@
 from re import template
+from Instrucciones.Imprimir import obtenerVector
 from TS.Generador import Generador
 from TS.Entorno import Entorno
 from TS.Simbolo import Simbolo
@@ -111,42 +112,67 @@ class ForCadena(NodoAST):
                 #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
 
-            '''valor_final = len(valor_inicio.valor)
-            primer_valor = valor_inicio.valor[0].interpretar(tree,table)
-            asignar = Asignacion(self.id, Primitivo(primer_valor.tipo, self.fila, self.columna, primer_valor.valor), None, self.fila, self.columna)
-            asignar.interpretar(tree, nueva_tabla)
-            iterador = 0
-            condicion = True
-            while iterador < valor_final:
-                tabla_for = TablaSimbolos(nueva_tabla)
-                tabla_for.setEntorno("For")
-                tree.agregarTabla(tabla_for)
-                for i in self.instrucciones:
-                    if isinstance(i, Excepcion):
-                        tree.updateConsola(i.toString())
-                        tree.addExcepcion(i)
-                        continue
-                    result = i.interpretar(tree, tabla_for)
-                    if isinstance(result, Excepcion):
-                        tree.updateConsola(result.toString())
-                        tree.addExcepcion(result)
-                        continue
-                    if isinstance(result, Break):
-                        condicion = False
-                        break
-                    if isinstance(result, Continue):
-                        break
-                    if isinstance(result, Return):
-                        return result
-                if condicion == False:
-                    condicion = True
-                    break
-                iterador += 1
-                if iterador != valor_final:
-                    inter = valor_inicio.valor[iterador].interpretar(tree, table)
-                    simbolo = Simbolo(self.id, self.fila, self.columna, Primitivo(inter.tipo, self.fila, self.columna, inter.valor))
-                    tabla_for.actualizarTabla(simbolo)'''
+            aux = Generador()
+            generador = aux.obtenerGen()
+            #asignar = Asignacion(self.id, self.inicio, None, self.fila, self.columna)
+            #asignar.interpretar(nuevo_entorno)
+            
+            
+            #temp_final = generador.agregarTemporal()
+            #generador.agregarExpresion(temp_final,valor_final.valor,'','')
+            
+            # el primitivo me devuelve un temporal con la posicion en el heap
+            #guardar = Identificador(self.id, self.fila, self.columna)
+            #guardar_interpretar = guardar.interpretar(nuevo_entorno)
+            tipo_retorno = TIPO.ENTERO
+            if isinstance(valor_inicio.arreglo[0],list):
+                print("si es arreglo padre")
+                tipo_retorno = TIPO.ARREGLO
+            else:
+                tipo_retorno = valor_inicio.arreglo[0]
+            print("----arreglos--------")
+            print(valor_inicio.arreglo)
+            simbolo = nuevo_entorno.guardarVariable(self.id, tipo_retorno, True, False,valor_inicio.arreglo)
+            heap = generador.agregarTemporal()
+            #temp_inicio = guardar_interpretar.valor
+            temp_inicio = generador.agregarTemporal()
+            generador.agregarExpresion(temp_inicio,'0','','')
+            generador.guardar_stack(simbolo.pos,valor_inicio.valor)
+            variable = nuevo_entorno.obtenerVariable(self.id)
+            valor_final = generador.agregarTemporal()
+            generador.obtener_stack(heap,variable.pos)
+            
 
+            lbl_for = generador.agregarLabel()
+            generador.obtener_heap(valor_final,heap)
+            generador.agregarExpresion(heap,heap,'1','+')
+            generador.colocarLbl(lbl_for)
+
+
+            
+            lbl_instrucciones = generador.agregarLabel()
+            lbl_salida = generador.agregarLabel()
+            lbl_incremento = generador.agregarLabel()
+            generador.agregarIf(temp_inicio,valor_final,'<',lbl_instrucciones)
+            generador.agregarGoto(lbl_salida)
+            
+            nuevo_entorno.lbl_break = lbl_salida
+            nuevo_entorno.lbl_continue = lbl_incremento
+            
+            generador.colocarLbl(lbl_instrucciones)
+            valor_heap = generador.agregarTemporal()
+            generador.obtener_heap(valor_heap,heap)
+            generador.guardar_stack(variable.pos,valor_heap)
+            generador.agregarExpresion(heap,heap,'1','+')
+            for i in self.instrucciones:
+                i.interpretar(nuevo_entorno)
+            
+            generador.agregarGoto(lbl_incremento)
+            generador.colocarLbl(lbl_incremento)
+            generador.agregarExpresion(temp_inicio,temp_inicio,'1','+')
+            generador.guardar_stack(variable.pos,heap)
+            generador.agregarGoto(lbl_for)
+            generador.colocarLbl(lbl_salida)
     def getNodo(self):
         
             nodo = NodoReporteArbol("FOR")

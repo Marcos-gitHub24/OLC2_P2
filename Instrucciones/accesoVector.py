@@ -39,6 +39,7 @@ class Acceso(NodoAST):
             lista.append(result.valor)
         variable = entorno.obtenerVariable(self.identificador)
         print("-----variable---")
+        print(lista)
         print(variable.arreglo)
         pivote = generador.agregarTemporal()
         apunta_heap = generador.agregarTemporal()
@@ -49,28 +50,80 @@ class Acceso(NodoAST):
         arreglo_tipo = variable.arreglo
         contador = 1
         tipo_retorno = TIPO.ENTERO
-        for i in arreglo_tipo:
-            if isinstance(i,list) == True and contador != len(lista):
-                arreglo_tipo = variable.arreglo[int(lista[contador-1])-1]
-            elif isinstance(i,list) == True and contador == len(lista):
-                print(contador)
-                if int(lista[contador-1]) >= len(arreglo_tipo):
-                    continue
-                arreglo_tipo = variable.arreglo[int(lista[contador-1])-1]
-                break
-            elif isinstance(i,list)== False and contador == len(lista):
-                if int(lista[contador-1]) >= len(arreglo_tipo):
-                    tipo_retorno = arreglo_tipo[len(arreglo_tipo)-1]
-                else:
-                    tipo_retorno = arreglo_tipo[int(lista[contador-1])-1]
-                break
-            elif isinstance(i,list) and contador == len(lista):
-                tipo_retorno = TIPO.ARREGLO                 # tengo que arreglar cuando el indice sea mayor al tamaño
-            contador += 1
-
-        resultado = Return(pivote,tipo_retorno,True)
-        extra = generador.agregarLabel()
         
+        #print(obtengoTipo(variable.arreglo,len(variable.arreglo),len(variable.arreglo)))
+        bandera = False
+        if len(lista)==1:
+            if isinstance(variable.arreglo[0],list):
+                tipo_retorno = TIPO.ARREGLO
+            else:
+                tipo_retorno = variable.arreglo[0]
+        else:
+            for i in variable.arreglo:                  # me sirve para ver que tipo regresar
+                nivel = len(lista)-1
+                if isinstance(i,list):
+                    print('--empiezo co nivel--')
+                    print(nivel)
+
+                    contador = 0
+                    arreglo = i
+                    print(arreglo[0])
+                    while contador < nivel:
+                        if isinstance(arreglo[0],list):
+                            arreglo = arreglo[0]
+                            nivel = nivel - 1
+                        if nivel<len(lista):
+                            if isinstance(arreglo[0],list):
+                                nivel = nivel - 1
+                                tipo_retorno = TIPO.ARREGLO
+                                bandera = True
+                                break
+                            else:
+                                nivel = nivel - 1
+                                tipo_retorno = arreglo[0]
+                                bandera = True
+                                break
+                        contador = contador + 1
+                if bandera:
+                    break
+        print('---prueba....')
+        print(tipo_retorno)
+
+        '''if len(lista)==1:
+            if isinstance(variable.arreglo[0],list):
+                tipo_retorno = TIPO.ARREGLO
+            else:
+                tipo_retorno = variable.arreglo[0]
+        else:
+            try:
+                for i in arreglo_tipo:
+                    if isinstance(i,list) == True and contador != len(lista):
+                        arreglo_tipo = variable.arreglo[int(lista[contador-1])-1]
+                    elif isinstance(i,list) == True and contador == len(lista):
+                        print(contador)
+                        if int(lista[contador-1]) >= len(arreglo_tipo):
+                            continue
+                        arreglo_tipo = variable.arreglo[int(lista[contador-1])-1]
+                        break
+                    elif isinstance(i,list)== False and contador == len(lista):
+                        if int(lista[contador-1]) >= len(arreglo_tipo):
+                            tipo_retorno = arreglo_tipo[len(arreglo_tipo)-1]
+                        else:
+                            tipo_retorno = arreglo_tipo[int(lista[contador-1])-1]
+                        break
+                    elif isinstance(i,list) and contador == len(lista):
+                        tipo_retorno = TIPO.ARREGLO                 # tengo que arreglar cuando el indice sea mayor al tamaño
+                    contador += 1
+
+                
+            except:
+                if isinstance(variable.arreglo[0],list):
+                    tipo_retorno = TIPO.ARREGLO
+                else:
+                    tipo_retorno = variable.arreglo[0]'''
+        resultado = Return(pivote,tipo_retorno,True)
+        resultado.arreglo = variable.arreglo
+        extra = generador.agregarLabel()
         #resultado.falselbl = extra
         for i in lista:
             
@@ -118,5 +171,13 @@ class Acceso(NodoAST):
             unaVez = False
         nodo.agregarHijoCadena("]")
         return nodo
+def obtengoTipo(arreglo,contador,nivel):
+    tipo = ''
+    for i in arreglo:
+        if isinstance(i,list):
+            contador = contador - 1
+            tipo = obtengoTipo(i,contador,nivel)
+    if contador == 1:
+        return tipo
 
    

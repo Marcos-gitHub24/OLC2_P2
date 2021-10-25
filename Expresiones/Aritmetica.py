@@ -246,23 +246,27 @@ class Aritmetica(NodoAST):
         if (self.operador==OperadorAritmetico.MODULO):
             operador = '%'
             if(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.ENTERO):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                generador.modulo(temporal,res_left.valor,res_right.valor)
+                #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, int(res_left.getValue()) % int(res_right.getValue()));
                 return Return(temporal, TIPO.ENTERO, True)
 
 
             elif(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.DECIMAL):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                generador.modulo(temporal,res_left.valor,res_right.valor)
+                #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, int(res_left.getValue()) % float(res_right.getValue()));
                 return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.ENTERO):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                generador.modulo(temporal,res_left.valor,res_right.valor)
+                #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) % int(res_right.getValue()));
                 return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.DECIMAL):
-                generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
+                generador.modulo(temporal,res_left.valor,res_right.valor)
+                #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) % float(res_right.getValue()));
                 return Return(temporal, TIPO.DECIMAL, True)
             else:

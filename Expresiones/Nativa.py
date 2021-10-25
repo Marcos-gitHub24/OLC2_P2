@@ -1,3 +1,4 @@
+from Abstract.Return import Return
 from TS.Simbolo import Simbolo
 from Expresiones.Identificador import Identificador
 from io import open_code
@@ -9,6 +10,7 @@ from Abstract.NodoReporteArbol import NodoReporteArbol
 from Abstract.NodoAST import NodoAST
 from TS.Excepcion import Excepcion
 from TS.Tipo import TIPO, OperadorAritmetico
+from TS.Generador import Generador
 from math import log, log10, sin, cos, tan, sqrt, trunc
 
 class Nativa(NodoAST):
@@ -19,31 +21,33 @@ class Nativa(NodoAST):
         self.base = base
         self.valor = valor
 
-    def interpretar(self, tree, table):
+    def interpretar(self, entorno):
         res_base = None
         res_valor = None
+        aux = Generador()
+        generador = aux.obtenerGen()
         if(self.valor == ""):
             if isinstance(self.base, str):
                  res_base = self.base
             else:
-                res_base = self.base.interpretar(tree,table)
+                res_base = self.base.interpretar(entorno)
                 if(res_base.tipo == TIPO.ERROR):
-                    tree.addExcepcion(res_base)
+                    #tree.addExcepcion(res_base)
                     return res_base;
         elif isinstance(self.base, str):
              res_base = self.base
-             res_valor = self.valor.interpretar(tree,table)
+             res_valor = self.valor.interpretar(entorno)
              if(res_valor.tipo == TIPO.ERROR):
-                tree.addExcepcion(res_valor)
+                #tree.addExcepcion(res_valor)
                 return res_valor;
         else:
-            res_base = self.base.interpretar(tree,table)
+            res_base = self.base.interpretar(entorno)
             if(res_base.tipo == TIPO.ERROR):
-                tree.addExcepcion(res_base)
+                #tree.addExcepcion(res_base)
                 return res_base;
-            res_valor = self.valor.interpretar(tree,table)
+            res_valor = self.valor.interpretar(entorno)
             if(res_valor.tipo == TIPO.ERROR):
-                tree.addExcepcion(res_valor)
+                #tree.addExcepcion(res_valor)
                 return res_valor;
 
         if (self.operador == OperadorAritmetico.BASE10):
@@ -67,49 +71,117 @@ class Nativa(NodoAST):
                 return Primitivo(TIPO.DECIMAL, self.fila, self.columna, sqrt(float(res_base.getValue())))
 
         if (self.operador == OperadorAritmetico.LOWER):
-            return Primitivo(TIPO.CADENA, self.fila, self.columna, str.lower(str(res_base.getValue())))
+                generador.funToLower()
+                temporal = generador.agregarTemporal()
+                generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                generador.agregarExpresion(temporal, temporal, '1', '+')
+                generador.guardar_stack(temporal, res_base.valor)
+                generador.newEnv(entorno.size)
+                generador.callFun('toLower')
+                tmp = generador.agregarTemporal()
+                generador.obtener_stack(tmp, 'P')
+                generador.retEnv(entorno.size)
+                return Return(tmp,TIPO.CADENA,True)
+            #return Primitivo(TIPO.CADENA, self.fila, self.columna, str.lower(str(res_base.getValue())))
         
         if (self.operador == OperadorAritmetico.UPPER):
-            return Primitivo(TIPO.CADENA, self.fila, self.columna, str.upper(str(res_base.getValue())))
+                generador.funToUpper()
+                temporal = generador.agregarTemporal()
+                generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                generador.agregarExpresion(temporal, temporal, '1', '+')
+                generador.guardar_stack(temporal, res_base.valor)
+                generador.newEnv(entorno.size)
+                generador.callFun('toUpper')
+                tmp = generador.agregarTemporal()
+                generador.obtener_stack(tmp, 'P')
+                generador.retEnv(entorno.size)
+                return Return(tmp,TIPO.CADENA,True)
+            #return Primitivo(TIPO.CADENA, self.fila, self.columna, str.upper(str(res_base.getValue())))
 
         if (self.operador == OperadorAritmetico.PARSE):
             if res_valor.tipo == TIPO.CADENA:
                 if res_base == "Float64":
-                    return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_valor.getValue()))
+                    generador.funParseFloat()
+                    temporal = generador.agregarTemporal()
+                    generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                    generador.agregarExpresion(temporal, temporal, '1', '+')
+                    generador.guardar_stack(temporal, res_valor.valor)
+                    generador.newEnv(entorno.size)
+                    generador.callFun('parseFloat')
+                    tmp = generador.agregarTemporal()
+                    generador.obtener_stack(tmp, 'P')
+                    generador.retEnv(entorno.size)
+                    return Return(tmp,TIPO.DECIMAL,True)
+                    #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_valor.getValue()))
                 elif res_base == "Int64":
-                    return Primitivo(TIPO.ENTERO, self.fila, self.columna, int(res_valor.getValue()))
+                    generador.funParseInt()
+                    temporal = generador.agregarTemporal()
+                    generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                    generador.agregarExpresion(temporal, temporal, '1', '+')
+                    generador.guardar_stack(temporal, res_valor.valor)
+                    generador.newEnv(entorno.size)
+                    generador.callFun('parseInt')
+                    tmp = generador.agregarTemporal()
+                    generador.obtener_stack(tmp, 'P')
+                    generador.retEnv(entorno.size)
+                    return Return(tmp,TIPO.ENTERO,True)
                 else:
-                    tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede parsearse con ese tipo",self.fila,self.columna))
+                    #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede parsearse con ese tipo",self.fila,self.columna))
                     return Excepcion(TIPO.ERROR, f"No puede parsearse con ese tipo",self.fila,self.columna);
             else:
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede parsearse con ese tipo",self.fila,self.columna))
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede parsearse con ese tipo",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede parsearse con ese tipo",self.fila,self.columna);
 
         if (self.operador == OperadorAritmetico.TRUNC):
             if res_valor.tipo == TIPO.DECIMAL:
                 if res_base == "Int64":
-                    return Primitivo(TIPO.ENTERO, self.fila, self.columna, trunc(res_valor.getValue()))
+                    generador.funcTrunc()
+                    temporal = generador.agregarTemporal()
+                    generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                    generador.agregarExpresion(temporal, temporal, '1', '+')
+                    generador.guardar_stack(temporal, res_valor.valor)
+                    generador.newEnv(entorno.size)
+                    generador.callFun('trunc')
+                    tmp = generador.agregarTemporal()
+                    generador.obtener_stack(tmp, 'P')
+                    generador.retEnv(entorno.size)
+                    return Return(tmp,TIPO.ENTERO,True)
+                    #return Primitivo(TIPO.ENTERO, self.fila, self.columna, trunc(res_valor.getValue()))
                 elif res_base == "":
-                    return Primitivo(TIPO.DECIMAL, self.fila, self.columna, trunc(res_valor.getValue()))
+                    generador.funcTrunc()
+                    temporal = generador.agregarTemporal()
+                    generador.agregarExpresion(temporal, 'P', entorno.size, '+')
+                    generador.agregarExpresion(temporal, temporal, '1', '+')
+                    generador.guardar_stack(temporal, res_valor.valor)
+                    generador.newEnv(entorno.size)
+                    generador.callFun('trunc')
+                    tmp = generador.agregarTemporal()
+                    generador.obtener_stack(tmp, 'P')
+                    generador.retEnv(entorno.size)
+                    return Return(tmp,TIPO.DECIMAL,True)
+                    #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, trunc(res_valor.getValue()))
                 else:
-                    tree.addExcepcion(Excepcion(TIPO.ERROR, f"No trunquear ese tipo",self.fila,self.columna))
+                    #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No trunquear ese tipo",self.fila,self.columna))
                     return Excepcion(TIPO.ERROR, f"No trunquear ese tipo",self.fila,self.columna);
             else:
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No trunquear ese tipo",self.fila,self.columna))
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No trunquear ese tipo",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No trunquear ese tipo",self.fila,self.columna);
 
         if (self.operador == OperadorAritmetico.FLOAT):
             if res_base.tipo == TIPO.ENTERO:
-                return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_base.getValue()))
+                #nuevo = generador.agregarTemporal()
+                #generador.agregarExpresion(nuevo,res_base.valor,'','')
+                return Return(res_base.valor,TIPO.DECIMAL,True)
+                #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_base.getValue()))
             else:
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar float a ese tipo",self.fila,self.columna))
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar float a ese tipo",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizar float a ese tipo",self.fila,self.columna);
 
         if (self.operador == OperadorAritmetico.STRING):
             if isinstance(res_base.getValue(), list):
                 lista = []
                 for i in res_base.getValue():
-                    a = i.interpretar(tree, table)
+                    a = i.interpretar(entorno)
                     lista.append(a.valor)
                 return Primitivo(TIPO.CADENA, self.fila, self.columna, str(lista))        
             return Primitivo(TIPO.CADENA, self.fila, self.columna, str(res_base.getValue()))
@@ -126,62 +198,32 @@ class Nativa(NodoAST):
             elif res_base.tipo == TIPO.CADENA:
                 return Primitivo(TIPO.CADENA, self.fila, self.columna, "String")
             else:
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar typeof con esa expresion",self.fila,self.columna))
+                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar typeof con esa expresion",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizar typeof con esa expresion",self.fila,self.columna);
 
-        if self.operador == OperadorAritmetico.PUSH:
-            if isinstance(res_base, str):
-                arreglo = Identificador(res_base, self.fila, self.columna)
-                arreglo = arreglo.interpretar(tree, table)
-                if arreglo.tipo == TIPO.ARREGLO:
-                    arreglo.valor.append(res_valor)
-                    simbolo = Simbolo(res_base, self.fila, self.columna, Primitivo(TIPO.ARREGLO, self.fila, self.columna, arreglo.valor))
-                    table.actualizarTabla(simbolo)
-                else:     
-                    tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el push en arreglos",self.fila,self.columna))
-                    return Excepcion(TIPO.ERROR, f"Solo se puede realizar el push en arreglos",self.fila,self.columna);
-            elif isinstance(res_base, Primitivo):
-                     if res_base.tipo == TIPO.ARREGLO:
-                        res_base.valor.append(res_valor)
-                     else:     
-                        tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))
-                        return Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna);
-            else:   
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))
-                return Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna);
-    
-        if self.operador == OperadorAritmetico.POP:
-            arreglo = Identificador(res_base, self.fila, self.columna)
-            arreglo = arreglo.interpretar(tree, table)
-            if arreglo.tipo == TIPO.ARREGLO:
-                valor = arreglo.valor.pop(len(arreglo.valor)-1)
-                simbolo = Simbolo(res_base, self.fila, self.columna, Primitivo(TIPO.ARREGLO, self.fila, self.columna, arreglo.valor))
-                table.actualizarTabla(simbolo)
-                valor = valor.interpretar(tree, table)
-                return Primitivo(valor.tipo, self.fila, self.columna, valor.valor)
-            else:
-                tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el pop en arreglos",self.fila,self.columna))     
-                return Excepcion(TIPO.ERROR, f"Solo se puede realizar el pop en arreglos",self.fila,self.columna);
-        
         if self.operador == OperadorAritmetico.LENGTH:
                 if isinstance(res_base, str):
                     arreglo = Identificador(res_base, self.fila, self.columna)
-                    arreglo = arreglo.interpretar(tree, table)
+                    arreglo = arreglo.interpretar(entorno)
                     if arreglo.tipo == TIPO.ARREGLO:
-                        valor = len(arreglo.valor)
-                        return Primitivo(TIPO.ENTERO, self.fila, self.columna, valor)
+                        tamano = generador.agregarTemporal()
+                        generador.obtener_heap(tamano,arreglo.valor)
+                        return Return(tamano,TIPO.ENTERO,True)
+                        #return Primitivo(TIPO.ENTERO, self.fila, self.columna, valor)
                     else:  
-                        tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))   
+                        #tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))   
                         return Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna);
-                elif isinstance(res_base, Primitivo):
+                elif isinstance(res_base, Return):
                      if res_base.tipo == TIPO.ARREGLO:
-                        valor = len(res_base.valor)
-                        return Primitivo(TIPO.ENTERO, self.fila, self.columna, valor)
+                        tamano = generador.agregarTemporal()
+                        generador.obtener_heap(tamano,res_base.valor)
+                        return Return(tamano,TIPO.ENTERO,True)
+                        #return Primitivo(TIPO.ENTERO, self.fila, self.columna, valor)
                      else:     
-                        tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))
+                        #tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))
                         return Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna);
                 else:
-                    tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))     
+                    #tree.addExcepcion(Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna))     
                     return Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna);
 
 
