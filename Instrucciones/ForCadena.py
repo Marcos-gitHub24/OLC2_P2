@@ -58,10 +58,15 @@ class ForCadena(NodoAST):
             heap = generador.agregarTemporal()
             #temp_inicio = guardar_interpretar.valor
             temp_inicio = valor_inicio.valor
-            generador.guardar_stack(simbolo.pos,valor_inicio.valor)
+
+            tmp = generador.agregarTemporal()
+            generador.agregarExpresion(tmp,'P',simbolo.pos,'+')
+            generador.guardar_stack(tmp,valor_inicio.valor)
+
             variable = nuevo_entorno.obtenerVariable(self.id)
 
-            generador.obtener_stack(heap,variable.pos)
+            generador.agregarExpresion(tmp,'P',variable.pos,'+')
+            generador.obtener_stack(heap,tmp)
             
 
             lbl_for = generador.agregarLabel()
@@ -79,7 +84,8 @@ class ForCadena(NodoAST):
             nuevo_entorno.lbl_continue = lbl_incremento
             
             generador.colocarLbl(lbl_instrucciones)
-            generador.guardar_stack(variable.pos,'H')
+            generador.agregarExpresion(tmp,'P',variable.pos,'+')
+            generador.guardar_stack(tmp,'H')
             generador.guardar_heap('H',temp_inicio)
             generador.agregarExpresion('H','H','1','+')
             generador.guardar_heap('H','-1')
@@ -92,7 +98,8 @@ class ForCadena(NodoAST):
             generador.agregarExpresion(heap,heap,'1','+')
             
             generador.obtener_heap(temp_inicio, heap)
-            generador.guardar_stack(variable.pos,heap)
+            generador.agregarExpresion(tmp,'P',variable.pos,'+')
+            generador.guardar_stack(tmp,heap)
             generador.agregarGoto(lbl_for)
             generador.colocarLbl(lbl_salida)
 
@@ -125,27 +132,46 @@ class ForCadena(NodoAST):
             #guardar = Identificador(self.id, self.fila, self.columna)
             #guardar_interpretar = guardar.interpretar(nuevo_entorno)
             tipo_retorno = TIPO.ENTERO
+            arreglo_enviar = valor_inicio.arreglo 
             if isinstance(valor_inicio.arreglo[0],list):
-                print("si es arreglo padre")
+                print("si es arreglo ")
                 tipo_retorno = TIPO.ARREGLO
+                arreglo_enviar = valor_inicio.arreglo[0]
             else:
                 tipo_retorno = valor_inicio.arreglo[0]
             print("----arreglos--------")
             print(valor_inicio.arreglo)
-            simbolo = nuevo_entorno.guardarVariable(self.id, tipo_retorno, True, False,valor_inicio.arreglo)
+            generador.addComment('aca empieza el FOR EN ARREGLO')
+            simbolo = nuevo_entorno.guardarVariable(self.id, tipo_retorno, True, False,arreglo_enviar)
             heap = generador.agregarTemporal()
             #temp_inicio = guardar_interpretar.valor
             temp_inicio = generador.agregarTemporal()
             generador.agregarExpresion(temp_inicio,'0','','')
-            generador.guardar_stack(simbolo.pos,valor_inicio.valor)
+
+            tmp = generador.agregarTemporal()
+            generador.agregarExpresion(tmp,'P',simbolo.pos,'+')
+            generador.guardar_stack(tmp,valor_inicio.valor)
+
             variable = nuevo_entorno.obtenerVariable(self.id)
             valor_final = generador.agregarTemporal()
-            generador.obtener_stack(heap,variable.pos)
+
+            generador.agregarExpresion(tmp,'P',variable.pos,'+')
+            generador.obtener_stack(heap,tmp)
+
             
 
             lbl_for = generador.agregarLabel()
-            generador.obtener_heap(valor_final,heap)
-            generador.agregarExpresion(heap,heap,'1','+')
+            generador.obtener_heap(valor_final,heap) # aca obtengo el tamaño del vector
+            generador.agregarExpresion(heap,heap,'1','+') # posicion 1 del arreglo
+            #generador.guardar_stack(simbolo.pos,heap)
+
+            valor_heap = generador.agregarTemporal()
+            generador.obtener_heap(valor_heap,heap)
+            generador.agregarExpresion(tmp,'P',variable.pos,'+')
+            generador.guardar_stack(tmp,valor_heap)
+            
+
+            
             generador.colocarLbl(lbl_for)
 
 
@@ -153,26 +179,37 @@ class ForCadena(NodoAST):
             lbl_instrucciones = generador.agregarLabel()
             lbl_salida = generador.agregarLabel()
             lbl_incremento = generador.agregarLabel()
+            
             generador.agregarIf(temp_inicio,valor_final,'<',lbl_instrucciones)
             generador.agregarGoto(lbl_salida)
             
             nuevo_entorno.lbl_break = lbl_salida
             nuevo_entorno.lbl_continue = lbl_incremento
-            
-            generador.colocarLbl(lbl_instrucciones)
-            valor_heap = generador.agregarTemporal()
+
+            '''valor_heap = generador.agregarTemporal()
             generador.obtener_heap(valor_heap,heap)
             generador.guardar_stack(variable.pos,valor_heap)
-            generador.agregarExpresion(heap,heap,'1','+')
+            generador.agregarExpresion(heap,heap,'1','+')'''
+
+            generador.colocarLbl(lbl_instrucciones)
+            
             for i in self.instrucciones:
                 i.interpretar(nuevo_entorno)
             
             generador.agregarGoto(lbl_incremento)
             generador.colocarLbl(lbl_incremento)
             generador.agregarExpresion(temp_inicio,temp_inicio,'1','+')
-            generador.guardar_stack(variable.pos,heap)
+            generador.agregarExpresion(heap,heap,'1','+')
+            generador.obtener_heap(valor_heap,heap)
+            obtengo = generador.agregarTemporal()
+            generador.agregarExpresion(obtengo,'P',variable.pos,'+')
+            generador.guardar_stack(obtengo,valor_heap)
+            #generador.guardar_stack(variable.pos,heap)
             generador.agregarGoto(lbl_for)
             generador.colocarLbl(lbl_salida)
+
+
+
     def getNodo(self):
         
             nodo = NodoReporteArbol("FOR")

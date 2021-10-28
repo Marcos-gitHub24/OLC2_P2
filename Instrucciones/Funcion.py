@@ -7,24 +7,59 @@ from TS.Excepcion import Excepcion
 from TS.TablaSimbolos import TablaSimbolos
 from Instrucciones.Break import Break
 from TS.Simbolo import Simbolo
-
+from TS.Entorno import Entorno
+from TS.Generador import Generador
 
 class Funcion(NodoAST):
     def __init__(self, nombre, metodo, fila, columna):
+        super().__init__(TIPO.ENTERO, fila, columna)
         self.nombre = nombre
         self.metodo = metodo
         self.fila = fila
         self.columna = columna
     
-    def interpretar(self, tree, table):
-        nuevaTabla = TablaSimbolos(table) 
-        met = table.getTabla(self.nombre)
-        if met == None:
-            simbolo = Simbolo(self.nombre, self.fila, self.columna, self.metodo)
-            table.setTabla(simbolo)
+    def interpretar(self, entorno):
+        if isinstance(self.metodo.tipo,list):
+            self.metodo.arreglo_tipo = self.metodo.tipo
+            self.tipo = TIPO.ARREGLO
         else:
-            tree.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
-            return Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna)
+            self.tipo = self.metodo.tipo
+        entorno.guardarFuncion(self.nombre, self)
+        aux = Generador()
+        generador = aux.obtenerGen()
+        print('******************metodoTipo*********************')
+        print(self.tipo)
+        print('*************************************************')
+        nuevo_entorno = Entorno(entorno)
+        nuevo_entorno.dentro = '1'
+        lbl_return = generador.agregarLabel()
+        nuevo_entorno.lbl_return = lbl_return
+        nuevo_entorno.size = 1
+        
+        tipo = TIPO.ENTERO
+        for i in self.metodo.getParametros():
+            arreglo = None
+            if isinstance(i.tipo,list):
+                print(i.tipo)
+                tipo = TIPO.ARREGLO
+                arreglo = i.tipo  #aca esta el arreglo de tipo
+            else:
+                tipo = i.tipo
+            nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), tipo == TIPO.STRUCT, arreglo)
+        
+        generador.addBeginFunc(self.nombre)
+
+        
+        for i in self.metodo.getInstrucciones():
+            i.interpretar(nuevo_entorno)
+       
+            #print('ERROR')
+        #generador.agregarGoto(lbl_return)
+        generador.colocarLbl(lbl_return)
+        generador.addEndFunc()
+
+            #tree.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
+            #return Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna)
 
     def getNodo(self):
         nodo = NodoReporteArbol("FUNCION")

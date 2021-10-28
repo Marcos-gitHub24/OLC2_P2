@@ -1,11 +1,9 @@
-from Expresiones.Struct import Struct
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from Abstract.NodoAST import NodoAST
-from Abstract.Objeto import Objeto, TipoObjeto
 from TS.Generador import Generador
 from TS.Tipo import TIPO
 from Abstract.Return import Return
-from abc import ABC, abstractmethod
+
 
 class Primitivo(NodoAST):
     def __init__(self, tipo, fila, columna, valor):
@@ -73,6 +71,8 @@ class Primitivo(NodoAST):
             #generador.guardar_heap('H', '-2')
             #generador.agregarExpresion('H','H','1','+')
             #generador.sumar_heap()
+            print('------------------------------')
+            print(self.valor)
             arreglo = obtenerVector(entorno,self.valor)
             print('------------------------------')
             print(arreglo)
@@ -120,7 +120,9 @@ def obtenerVector(entorno, vector):
         lista = []
         for i in vector:
             #valor = i.interpretar(entorno)
-            if isinstance(i.valor,list):
+            if not isinstance(i,Primitivo):
+                lista.append(i.tipo)
+            elif isinstance(i.valor,list):
                lista.append(obtenerVector(entorno,i.valor))
             else:
                 lista.append(i.tipo)

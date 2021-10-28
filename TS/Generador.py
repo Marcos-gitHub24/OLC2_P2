@@ -1,3 +1,4 @@
+from re import S
 from .Entorno import Entorno
 
 class Generador:
@@ -25,6 +26,7 @@ class Generador:
         self.toUpper = False
         self.toLower = False
         self.trunc = False
+        self.mod = False
 
     def cleanAll(self):
         # Contadores
@@ -46,7 +48,11 @@ class Generador:
     # CODE
     #############
     def getHeader(self):
-        ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt"\n\t"math"\n)\n\n'
+        if self.mod:
+            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt"\n\t"math"\n)\n\n'
+            self.mod = False
+        else:
+            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt"\n)\n\n'
         if len(self.temporales) > 0:
             ret += 'var '
             for temp in range(len(self.temporales)):
@@ -144,6 +150,19 @@ class Generador:
     def modulo(self,temporal,pos1,pos2):
         self.agregarCodigo(f'{temporal}=math.Mod({pos1},{pos2});\n')
 
+    def guardarTemporales(self, temporal, tamano, entorno):
+        guardo = self.agregarTemporal()
+        self.agregarExpresion(guardo,'P',tamano,'+')
+        self.guardar_stack(guardo,temporal)
+        entorno.size = tamano + 1
+
+    def recuperarTemporales(self, temporal, tamano, entorno):
+        recupero = self.agregarTemporal()
+        tamano = tamano -1
+        entorno.size = tamano 
+        self.agregarExpresion(recupero,'P',tamano,'+')
+        self.obtener_stack(temporal,recupero)
+
     # INSTRUCCIONES
     def agregarPrint(self, type, value):
         if type == 'd':
@@ -231,9 +250,9 @@ class Generador:
         self.agregarIf(exponente,'0','==',lblCero) #if si el exponente es 0
         self.agregarGoto(lblWhile) #lbl del while
         self.colocarLbl(lblCero)
-        self.agregarExpresion(base,'0','','') #se devuelve un cero
+        self.agregarExpresion(base,'1','','') #se devuelve un cero
         self.agregarExpresion(contador,contador,'1','+')#inicio contador
-
+        self.agregarGoto(lblSalida)
         self.colocarLbl(lblWhile) #empieza el while
         self.agregarIf(contador, exponente, '==', lblSalida)
         self.agregarExpresion(base,base,base,'*')
@@ -500,15 +519,19 @@ class Generador:
         self.obtener_stack(heap,referencia)
 
         lbl_while = self.agregarLabel()
+        lbl_incremento = self.agregarLabel()
         salida = self.agregarLabel()
 
         self.colocarLbl(lbl_while)
         valor_heap = self.agregarTemporal()
         self.obtener_heap(valor_heap,heap)
         self.agregarIf(valor_heap,'-1','==',salida)
+        self.agregarIf(valor_heap,'96','<=',lbl_incremento)
+        self.agregarIf(valor_heap,'123','>=',lbl_incremento)
         letra = self.agregarTemporal()
         self.agregarExpresion(letra,valor_heap,'32','-')
         self.guardar_heap(heap,letra)
+        self.colocarLbl(lbl_incremento)
         self.agregarExpresion(heap,heap,'1','+')
         self.agregarGoto(lbl_while)
         self.colocarLbl(salida)
@@ -529,15 +552,19 @@ class Generador:
         self.obtener_stack(heap,referencia)
 
         lbl_while = self.agregarLabel()
+        lbl_incremento = self.agregarLabel()
         salida = self.agregarLabel()
 
         self.colocarLbl(lbl_while)
         valor_heap = self.agregarTemporal()
         self.obtener_heap(valor_heap,heap)
         self.agregarIf(valor_heap,'-1','==',salida)
+        self.agregarIf(valor_heap,'64','<=',lbl_incremento)
+        self.agregarIf(valor_heap,'91','>=',lbl_incremento)
         letra = self.agregarTemporal()
         self.agregarExpresion(letra,valor_heap,'32','+')
         self.guardar_heap(heap,letra)
+        self.colocarLbl(lbl_incremento)
         self.agregarExpresion(heap,heap,'1','+')
         self.agregarGoto(lbl_while)
         self.colocarLbl(salida)

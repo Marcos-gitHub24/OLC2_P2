@@ -1,7 +1,8 @@
 
 from Instrucciones.AsignacionStruct import AsignacionStruct
-from Instrucciones.Return import Return
+from Abstract.Return import Return
 from Abstract.NodoReporteArbol import NodoReporteArbol
+from TS.Entorno import Entorno
 from TS.Simbolo import Simbolo
 from Instrucciones.Funcion import Funcion
 from Abstract.NodoAST import NodoAST
@@ -9,7 +10,8 @@ from TS.Excepcion import Excepcion
 from TS.TablaSimbolos import TablaSimbolos
 from Instrucciones.Break import Break
 from Expresiones.Struct import Struct
-
+from TS.Generador import Generador
+from TS.Tipo import TIPO
 
 class Llamada(NodoAST):
     def __init__(self, nombre, parametros, fila, columna):
@@ -18,63 +20,74 @@ class Llamada(NodoAST):
         self.fila = fila
         self.columna = columna
     
-    def interpretar(self, tree, table):
-        met = table.getTabla(self.nombre)
+    def interpretar(self, entorno):
+        met = entorno.obtenerFuncion(self.nombre)
         if met != None:
-            if isinstance(met.getValor(), Struct) == False:
-                tabla_nueva = TablaSimbolos(table)
-                tabla_nueva.setEntorno("Funcion")
-                tree.agregarTabla(tabla_nueva)
-                if self.parametros == None:
-                    inst = met.getValor()
-                    instrucciones  = inst.getInstrucciones()
-                    for i in instrucciones:
-                        if isinstance(i, Excepcion):
-                            tree.updateConsola(i.toString())
-                            tree.addExcepcion(i)
-                            continue
-                        resultado = i.interpretar(tree, tabla_nueva)
-                        if isinstance(resultado, Excepcion):
-                            tree.updateConsola(resultado.toString())
-                            tree.addExcepcion(resultado)
-                            continue
-                        if isinstance(resultado,Return):
-                            return resultado
-                else:
-                    inst = met.getValor()
-                    instrucciones  = inst.getInstrucciones()
-                    parametros = inst.getParametros()
-                    if len(parametros) == len(self.parametros):
-                        index = 0
-                        for i in inst.getParametros():
-                            result = self.parametros[index].interpretar(tree, table)
-                            simbolo = Simbolo(str(i),self.fila, self.columna, result)
-                            tabla_nueva.setTabla(simbolo)
-                            index += 1
+            valores_parametros = []
+            aux = Generador()
+            generador = aux.obtenerGen()
+            tamano = entorno.size
 
-                        for m in instrucciones:
-                            if isinstance(m, Excepcion):
-                                tree.updateConsola(m.toString())
-                                tree.addExcepcion(m)
-                                continue
-                            if isinstance(m, Return):
-                                if m.expresion != None:
-                                    devolver = m.expresion.interpretar(tree, tabla_nueva)
-                                    return devolver
-                                else:
-                                    return None
-                            resultado = m.interpretar(tree, tabla_nueva)
-                            if isinstance(resultado, Return):
-                                if resultado.expresion != None:
-                                    devolver = resultado.expresion.interpretar(tree, tabla_nueva)
-                                    return devolver
-                                else:
-                                    return None
+            for i in self.parametros:
+                bandera = False
+                if entorno.dentro != None and isinstance(i, Llamada):
+                    print("############SI ES LLAMADA ###########")
+                    bandera = True
+                    generador.guardarTemporales(generador.temporales[len(generador.temporales)-1],entorno.size,entorno)
+                valores_parametros.append(i.interpretar(entorno))
+                if bandera:
+                    generador.recuperarTemporales(generador.temporales[len(generador.temporales)-1],entorno.size,entorno)
+
+            temporal = generador.agregarTemporal()
+
+            generador.agregarExpresion(temporal,'P',tamano+1,'+')
+            auxiliar = 0
+
+            for i in valores_parametros:
+                auxiliar += 1
+                generador.guardar_stack(temporal,i.valor)
+                if auxiliar != len(valores_parametros):
+                    generador.agregarExpresion(temporal,temporal,'1','+')
+
+            
+
+            generador.newEnv(tamano)
+            generador.callFun(self.nombre)
+            generador.obtener_stack(temporal,'P')
+            generador.retEnv(tamano)
+            tipo_return = TIPO.ENTERO
+            arreglo_return = None
+            print('---------TIPO-------------')
+            if isinstance(met.tipo, list):
+                print('=========entro aacacac===============')
+                tipo_return = TIPO.ARREGLO
+                arreglo_return = met.tipo
             else:
-                struct = AsignacionStruct(None, self.nombre, self.parametros, self.fila, self.columna)
-                return struct.interpretar(tree, table)
+                arreglo_return = None
+                tipo_return = met.tipo
+            print(met.tipo)
+            print('=========ARREGLO===============')
+            print(arreglo_return)
+            if met.tipo == TIPO.BOOLEANO:
+                lbltrue = generador.agregarLabel()
+                lblfalse = generador.agregarLabel()
+                generador.agregarIf(temporal,'1','==',lbltrue)
+                generador.agregarGoto(lblfalse)
+                retornar = Return(temporal, met.tipo, True)
+                retornar.arreglo = met.metodo.arreglo_tipo
+                retornar.truelbl = lbltrue
+                retornar.falselbl = lblfalse
+                return retornar
+            else:
+                retornar = Return(temporal, met.tipo, True)
+                retornar.arreglo = met.metodo.arreglo_tipo
+                return retornar
         else:
-            return Excepcion("Semantico", f"Error al llamar a {self.nombre}", self.fila, self.columna)
+            print("para structs")
+
+            
+        #else:
+        #    return Excepcion("Semantico", f"Error al llamar a {self.nombre}", self.fila, self.columna)
 
                     
     def getNodo(self):

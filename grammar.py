@@ -3,6 +3,7 @@
 # --------------------
 
 from Abstract.NodoReporteArbol import NodoReporteArbol
+from Instrucciones.Parametro import Parametro
 from Instrucciones.llamadaIntermedia import LlamadaIntermedia
 from Instrucciones.Continue import Continue
 from TS.Entorno import Entorno
@@ -56,7 +57,8 @@ reservadas = {
     'struct'    : 'RSTRUCT',
     'mutable'   : 'RMUTABLE',
     'nothing'   : 'RNOTHING',
-    'global'    : 'RGLOBAL'
+    'global'    : 'RGLOBAL',
+    'Vector'    : 'RVECTOR'
 
 }
 
@@ -736,13 +738,39 @@ def p_return2(t):
 #///////////////////////////////////////FUNCION//////////////////////////////////////////////////
 
 def p_funcion_1(t) :
-    'funcion_instr     : RFUNC ID PARA parametros PARC instrucciones REND PUNTOCOMA'
-    t[0] = Funcion(t[2], Metodo(t[6], t[4]), t.lineno(1), find_column(input, t.slice[1]))
+    'funcion_instr     : RFUNC ID PARA parametros PARC DOSPUNTOS DOSPUNTOS tipo_funcion instrucciones REND PUNTOCOMA'
+    t[0] = Funcion(t[2], Metodo(t[9], t[4], t[8]), t.lineno(1), find_column(input, t.slice[1]))
 
 
 def p_funcion_2(t) :
-    'funcion_instr     : RFUNC ID PARA PARC instrucciones REND PUNTOCOMA'
-    t[0] = Funcion(t[2], Metodo(t[5], None), t.lineno(1), find_column(input, t.slice[1]))
+    'funcion_instr     : RFUNC ID PARA PARC DOSPUNTOS DOSPUNTOS tipo_funcion instrucciones REND PUNTOCOMA'
+    t[0] = Funcion(t[2], Metodo(t[8], None, t[7]), t.lineno(1), find_column(input, t.slice[1]))
+
+def p_tipo_funcion(t):
+    '''tipo_funcion      : RINT
+                         | RFLOAT
+                         | RBOOL
+                         | RSTRING
+                         | RCHAR
+                         | tipo_vector
+                         | ID
+    '''
+    if t[1] == 'Int64':
+        t[0] = TIPO.ENTERO
+    elif t[1] == 'Float64':
+        t[0] = TIPO.DECIMAL
+    elif t[1] == 'Bool':
+        t[0] = TIPO.BOOLEANO
+    elif t[1] == 'String':
+        t[0] = TIPO.CADENA
+    elif t[1] == 'Char':
+        t[0] = TIPO.CHARACTER
+    elif isinstance(t[1],list):
+        t[0] = t[1]
+    else:
+        t[0] = TIPO.STRUCT
+
+    
 
 
 #///////////////////////////////////////PARAMETROS//////////////////////////////////////////////////
@@ -761,7 +789,7 @@ def p_parametros_2(t) :
 def p_parametro(t) :
     'parametro     : ID'
     #t[0] = Asignacion(t[1], Primitivo(TIPO.ENTERO,t.lineno(1), find_column(input, t.slice[1]), 0), None, t.lineno(1), find_column(input, t.slice[1]))
-    t[0] = t[1]
+    t[0] = Parametro(t[1],TIPO.ENTERO)
 
 def p_parametro2(t) :
     '''parametro     : ID DOSPUNTOS DOSPUNTOS RINT 
@@ -769,11 +797,50 @@ def p_parametro2(t) :
                      | ID DOSPUNTOS DOSPUNTOS RCHAR
                      | ID DOSPUNTOS DOSPUNTOS RBOOL
                      | ID DOSPUNTOS DOSPUNTOS RSTRING
+                     | ID DOSPUNTOS DOSPUNTOS tipo_vector
                      | ID DOSPUNTOS DOSPUNTOS ID
     '''
-    t[0] = t[1]
+    if t[4] == 'Int64':
+        t[0] = Parametro(t[1],TIPO.ENTERO)
+    elif t[4] == 'Float64':
+        t[0] = Parametro(t[1],TIPO.DECIMAL)
+    elif t[4] == 'String':
+        t[0] = Parametro(t[1],TIPO.CADENA)
+    elif t[4] == 'Bool':
+        t[0] = Parametro(t[1],TIPO.BOOLEANO)
+    elif t[4] == 'Char':
+        t[0] = Parametro(t[1],TIPO.CHARACTER)
+    elif isinstance(t[4],list):
+        t[0] = Parametro(t[1], t[4])
+    else:
+        t[0] = Parametro(t[1],TIPO.STRUCT)
 
+def p_parametro_vector(t):
+    '''tipo_vector  : RVECTOR LLAVEA tipo_vector LLAVEC '''
+    t[0] = []
+    t[0].append(t[3])
 
+def p_parametro_vector2(t):
+    '''
+    tipo_vector          : RINT
+                         | RFLOAT
+                         | RBOOL
+                         | RSTRING
+                         | RCHAR
+                         | ID
+    '''
+    if t[1] == 'Int64':
+        t[0] = TIPO.ENTERO
+    elif t[1] == 'Float64':
+        t[0] = TIPO.DECIMAL
+    elif t[1] == 'String':
+        t[0] = TIPO.CADENA
+    elif t[1] == 'Bool':
+        t[0] = TIPO.BOOLEANO
+    elif t[1] == 'Char':
+        t[0] = TIPO.CHARACTER
+    else:
+        t[0] = TIPO.STRUCT
 #///////////////////////////////////////LLAMADA A FUNCION//////////////////////////////////////////////////
 
 def p_llamada1(t) :
@@ -998,9 +1065,9 @@ def parse(inp) :
     genAux = Generador()
     genAux.cleanAll()
     generator = genAux.obtenerGen()
-    newEnv = Entorno(None)
+    entorno = Entorno(None)
     for i in instrucciones:
-        i.interpretar(newEnv)
+        i.interpretar(entorno)
     '''ast = Arbol(instrucciones)
     TSGlobal = TablaSimbolos()
     TSGlobal.setEntorno("Global")

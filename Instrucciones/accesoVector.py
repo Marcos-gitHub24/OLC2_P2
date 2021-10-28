@@ -39,11 +39,14 @@ class Acceso(NodoAST):
             lista.append(result.valor)
         variable = entorno.obtenerVariable(self.identificador)
         print("-----variable---")
+        generador.addComment('ACA ACCEDO AL VECTOR')
         print(lista)
         print(variable.arreglo)
         pivote = generador.agregarTemporal()
         apunta_heap = generador.agregarTemporal()
-        generador.obtener_stack(pivote,variable.pos)
+        obtengo = generador.agregarTemporal()
+        generador.agregarExpresion(obtengo,'P',variable.pos,'+')
+        generador.obtener_stack(pivote,obtengo)
         tamano = generador.agregarTemporal()
         indice = generador.agregarTemporal()
         #extra = generador.agregarLabel()
@@ -53,6 +56,7 @@ class Acceso(NodoAST):
         
         #print(obtengoTipo(variable.arreglo,len(variable.arreglo),len(variable.arreglo)))
         bandera = False
+
         if len(lista)==1:
             if isinstance(variable.arreglo[0],list):
                 tipo_retorno = TIPO.ARREGLO
@@ -76,6 +80,7 @@ class Acceso(NodoAST):
                             if isinstance(arreglo[0],list):
                                 nivel = nivel - 1
                                 tipo_retorno = TIPO.ARREGLO
+                                arreglo_tipo = arreglo[0]
                                 bandera = True
                                 break
                             else:
@@ -122,7 +127,7 @@ class Acceso(NodoAST):
                 else:
                     tipo_retorno = variable.arreglo[0]'''
         resultado = Return(pivote,tipo_retorno,True)
-        resultado.arreglo = variable.arreglo
+        resultado.arreglo = arreglo_tipo
         extra = generador.agregarLabel()
         #resultado.falselbl = extra
         for i in lista:

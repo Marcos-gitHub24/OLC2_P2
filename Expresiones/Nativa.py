@@ -202,6 +202,7 @@ class Nativa(NodoAST):
                 return Excepcion(TIPO.ERROR, f"No puede realizar typeof con esa expresion",self.fila,self.columna);
 
         if self.operador == OperadorAritmetico.LENGTH:
+                generador.addComment('LENGTH LENGTH')
                 if isinstance(res_base, str):
                     arreglo = Identificador(res_base, self.fila, self.columna)
                     arreglo = arreglo.interpretar(entorno)

@@ -7,6 +7,8 @@ class Entorno:
         self.lbl_break = ''
         self.lbl_return = ''
         self.lbl_continue = ''
+        self.lbl_return = ''
+        self.dentro = None
         # NUEVO
         self.size = 0
         if(prev != None):
@@ -55,6 +57,7 @@ class Entorno:
         while env != None:
             if idFunc in env.functions.keys():
                 return env.functions[idFunc]
+            env = env.prev
         return None
         
     def obtenerStruct(self, idStruct):

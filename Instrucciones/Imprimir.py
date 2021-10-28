@@ -62,7 +62,9 @@ class Imprimir(NodoAST):
                 print('----------------------------------------------')
                 print(val)
                 generador.agregarPrint('c','91')
+                generador.agregarPrint('c','32')
                 imprimirVector(generador,val.arreglo,val.valor,entorno)
+                generador.agregarPrint('c','32')
                 generador.agregarPrint('c','93');
 
 
@@ -124,8 +126,10 @@ def imprimirVector(generador,arreglo,heap,entorno):
             generador.obtener_heap(heap,heap)
             #generador.agregarPrint('c','44');
             generador.agregarPrint('c','91')
+            generador.agregarPrint('c','32')
             imprimirVector(generador,nuevo,heap,entorno)
             #generador.agregarPrint('c','44');
+            generador.agregarPrint('c','32')
             generador.agregarPrint('c','93')
             if coma != len(arreglo)-1:
                     generador.agregarPrint('c','44');
@@ -140,10 +144,12 @@ def imprimirVector(generador,arreglo,heap,entorno):
                 generador.agregarPrint('d',imprime);
                 if coma != len(arreglo)-1:
                     generador.agregarPrint('c','44');
+                    generador.agregarPrint('c','32')
             elif i == TIPO.DECIMAL:
                 generador.agregarPrint('f',imprime);
                 if coma != len(arreglo)-1:
                     generador.agregarPrint('c','44');
+                    generador.agregarPrint('c','32')
             elif i == TIPO.CADENA:
                 generador.fPrintString()
                 temporal = generador.agregarTemporal()

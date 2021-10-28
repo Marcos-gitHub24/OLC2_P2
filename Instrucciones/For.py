@@ -53,6 +53,7 @@ class For(NodoAST):
         
         aux = Generador()
         generador = aux.obtenerGen()
+        generador.addComment('EMPIEZA EL FOR EN RANGO')
         temp_final = generador.agregarTemporal()
         generador.agregarExpresion(temp_final,valor_final.valor,'','')
         
@@ -62,9 +63,11 @@ class For(NodoAST):
         guardar = Identificador(self.id, self.fila, self.columna)
         guardar_interpretar = guardar.interpretar(nuevo_entorno)
         temp_inicio = guardar_interpretar.valor
+
         lbl_instrucciones = generador.agregarLabel()
         lbl_salida = generador.agregarLabel()
         lbl_incremento = generador.agregarLabel()
+
         generador.agregarIf(temp_inicio,temp_final,'<=',lbl_instrucciones)
         generador.agregarGoto(lbl_salida)
         
@@ -72,6 +75,7 @@ class For(NodoAST):
         nuevo_entorno.lbl_continue = lbl_incremento
 
         generador.colocarLbl(lbl_instrucciones)
+
         for i in self.instrucciones:
             i.interpretar(nuevo_entorno)
         
@@ -79,7 +83,11 @@ class For(NodoAST):
         generador.colocarLbl(lbl_incremento)
         generador.agregarExpresion(temp_inicio,temp_inicio,'1','+')
         variable = nuevo_entorno.obtenerVariable(self.id)
-        generador.guardar_stack(variable.pos,temp_inicio)
+        
+        tmp = generador.agregarTemporal()
+        generador.agregarExpresion(tmp,'P',variable.pos,'+')
+        generador.guardar_stack(tmp,temp_inicio)
+
         generador.agregarGoto(lbl_for)
         generador.colocarLbl(lbl_salida)
 

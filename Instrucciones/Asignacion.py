@@ -1,14 +1,8 @@
 from Expresiones.Struct import Struct
-from Objeto.Primitivo import Primitivo
-
-from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
-from TS.Excepcion import Excepcion
 from Abstract.NodoAST import NodoAST
 from TS.Generador import Generador
-from TS.Simbolo import Simbolo
 from TS.Tipo import TIPO
-from Abstract.Return import Return
 
 
 

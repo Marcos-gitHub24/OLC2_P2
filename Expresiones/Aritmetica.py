@@ -1,11 +1,9 @@
+from Instrucciones.Llamada import Llamada
 from Objeto.Primitivo import Primitivo
-from Abstract.Objeto import TipoObjeto
-from enum import Enum
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from Abstract.NodoAST import NodoAST
 from TS.Excepcion import Excepcion
 from TS.Tipo import TIPO, OperadorAritmetico
-from Abstract.Expresion import Expresion
 from Abstract.Return import Return
 from TS.Generador import Generador
 class Aritmetica(NodoAST):
@@ -26,7 +24,15 @@ class Aritmetica(NodoAST):
         generador = aux.obtenerGen()
         if self.operandoU == "":
             res_left = self.OperacionIzq.interpretar(entorno)
+            
+            if isinstance(self.OperacionDer, Llamada) and entorno.dentro != None:
+                generador.guardarTemporales(res_left.valor,entorno.size,entorno)
+            
             res_right = self.OperacionDer.interpretar(entorno)
+
+            if isinstance(self.OperacionDer, Llamada) and entorno.dentro != None:
+                generador.recuperarTemporales(res_left.valor,entorno.size,entorno)
+
             if(res_left.tipo == TIPO.ERROR):
                 #tree.addExcepcion(res_left)
                 return res_left;
@@ -245,6 +251,7 @@ class Aritmetica(NodoAST):
 
         if (self.operador==OperadorAritmetico.MODULO):
             operador = '%'
+            generador.mod = True
             if(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.ENTERO):
                 generador.modulo(temporal,res_left.valor,res_right.valor)
                 #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
