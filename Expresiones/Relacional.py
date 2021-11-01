@@ -1,5 +1,6 @@
 from Abstract.Return import Return
 from Expresiones.Struct import Struct
+from Instrucciones.Llamada import Llamada
 from Objeto.Primitivo import Primitivo
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
@@ -20,10 +21,20 @@ class Relacional(NodoAST):
         self.falselbl = None
 
     def interpretar(self, entorno):
-        res_left = self.OperacionIzq.interpretar(entorno)
-        res_right = None
         aux = Generador()
         generador = aux.obtenerGen()
+        res_left = self.OperacionIzq.interpretar(entorno)
+        res_right = None
+        bandera_llamada = False
+        temporal_recupero_guardo = None
+        if isinstance(self.OperacionDer, Llamada) and entorno.dentro != None:
+            temporal_recupero_guardo = res_left.valor
+            guardo = generador.agregarTemporal() 
+            generador.agregarExpresion(guardo,'P',entorno.size,'+')
+            generador.guardar_stack(guardo,temporal_recupero_guardo)
+            entorno.size = entorno.size + 1
+            bandera_llamada = True
+        
         resultado = Return('', TIPO.BOOLEANO, False)
         bandera = False
         if not isinstance(res_left, Struct) and not isinstance(res_right, Struct):
@@ -47,6 +58,12 @@ class Relacional(NodoAST):
                 operador = '!='
             if res_left.tipo != TIPO.BOOLEANO:
                 res_right = self.OperacionDer.interpretar(entorno)
+                if bandera_llamada:
+                    recupero = generador.agregarTemporal()
+                    entorno.size = entorno.size -1
+                    generador.agregarExpresion(recupero,'P',entorno.size,'+')
+                    generador.obtener_stack(temporal_recupero_guardo,recupero)
+                  
                 if(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.ENTERO):
                     bandera = True
                     # return Primitivo(TIPO.BOOLEANO, self.fila, self.columna, int(res_left.getValue()) >= int(res_right.getValue()))
@@ -124,7 +141,7 @@ class Relacional(NodoAST):
                 res_right = self.OperacionDer.interpretar(entorno)
 
                 if res_right.tipo != TIPO.BOOLEANO:
-                    return
+                    return                          # retorno error 
 
                 gotoEnd = generador.agregarLabel()
                 temp_derecho = generador.agregarTemporal()
@@ -146,9 +163,9 @@ class Relacional(NodoAST):
                 resultado.truelbl = self.truelbl
                 resultado.falselbl = self.falselbl
                 return resultado
+            
 
-
-            return Excepcion(TIPO.ERROR, f"Operador desconocido: {self.operador}", self.fila, self.columna)
+            #return Excepcion(TIPO.ERROR, f"Operador desconocido: {self.operador}", self.fila, self.columna)
 
     def getNodo(self):
         nodo = NodoReporteArbol("RELACIONAL")

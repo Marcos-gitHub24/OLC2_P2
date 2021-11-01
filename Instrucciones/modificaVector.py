@@ -1,3 +1,4 @@
+from Expresiones.Identificador import Identificador
 from TS.Generador import Generador
 from Abstract.Return import Return
 from Objeto.Primitivo import Primitivo
@@ -45,9 +46,13 @@ class Modifica(NodoAST):
         print(variable.arreglo)
         pivote = generador.agregarTemporal()
         apunta_heap = generador.agregarTemporal()
-        obtengo = generador.agregarTemporal()
-        generador.agregarExpresion(obtengo,'P',variable.pos,'+')
-        generador.obtener_stack(pivote,obtengo)
+        #obtengo = generador.agregarTemporal()
+        arrego_guardado = Identificador(self.identificador, self.fila, self.columna)
+        arreglo_usar = arrego_guardado.interpretar(entorno)
+        temp_inicio = arreglo_usar.valor
+        #generador.agregarExpresion(temp_inicio,'P',variable.pos,'+')
+        pivote = temp_inicio
+        #generador.obtener_stack(pivote,temp_inicio)
         tamano = generador.agregarTemporal()
         indice = generador.agregarTemporal()
         extra = generador.agregarLabel()
@@ -72,6 +77,7 @@ class Modifica(NodoAST):
             generador.agregarPrint('c','114')
             generador.agregarGoto(extra)
             generador.colocarLbl(salida)
+        generador.addComment("LO GUARDO")
         generador.guardar_heap(apunta_heap,nuevo_valor.valor)
         generador.colocarLbl(extra)
         #return Return(pivote,TIPO.ENTERO,True)

@@ -150,18 +150,7 @@ class Generador:
     def modulo(self,temporal,pos1,pos2):
         self.agregarCodigo(f'{temporal}=math.Mod({pos1},{pos2});\n')
 
-    def guardarTemporales(self, temporal, tamano, entorno):
-        guardo = self.agregarTemporal()
-        self.agregarExpresion(guardo,'P',tamano,'+')
-        self.guardar_stack(guardo,temporal)
-        entorno.size = tamano + 1
 
-    def recuperarTemporales(self, temporal, tamano, entorno):
-        recupero = self.agregarTemporal()
-        tamano = tamano -1
-        entorno.size = tamano 
-        self.agregarExpresion(recupero,'P',tamano,'+')
-        self.obtener_stack(temporal,recupero)
 
     # INSTRUCCIONES
     def agregarPrint(self, type, value):

@@ -18,9 +18,6 @@ class Identificador(NodoAST):
         aux = Generador()
         generador = aux.obtenerGen()
         variable = entorno.obtenerVariable(self.identificador)
-        print('-------iddididi')
-        print(variable.tipo)
-        print(variable.arreglo)
         if variable == None:
             print('No hay variable')
             return

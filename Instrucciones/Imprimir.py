@@ -126,13 +126,9 @@ def imprimirVector(generador,arreglo,heap,entorno):
             generador.obtener_heap(heap,heap)
             #generador.agregarPrint('c','44');
             generador.agregarPrint('c','91')
-            generador.agregarPrint('c','32')
             imprimirVector(generador,nuevo,heap,entorno)
-            #generador.agregarPrint('c','44');
-            generador.agregarPrint('c','32')
             generador.agregarPrint('c','93')
-            if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
+            generador.agregarPrint('c','32');
             generador.agregarExpresion(heap,aux,'','')
             generador.agregarExpresion(heap,heap,'1','+')
             generador.agregarExpresion(contador,contador,'1','+')
@@ -142,14 +138,12 @@ def imprimirVector(generador,arreglo,heap,entorno):
             generador.obtener_heap(imprime,heap)
             if i == TIPO.ENTERO:
                 generador.agregarPrint('d',imprime);
-                if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
-                    generador.agregarPrint('c','32')
+                generador.agregarIf(contador,tamano,'==',salida_lbl)
+                generador.agregarPrint('c','44');
             elif i == TIPO.DECIMAL:
                 generador.agregarPrint('f',imprime);
-                if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
-                    generador.agregarPrint('c','32')
+                generador.agregarIf(contador,tamano,'==',salida_lbl)
+                generador.agregarPrint('c','44');
             elif i == TIPO.CADENA:
                 generador.fPrintString()
                 temporal = generador.agregarTemporal()
@@ -161,8 +155,8 @@ def imprimirVector(generador,arreglo,heap,entorno):
                 tmp = generador.agregarTemporal()
                 generador.obtener_stack(tmp, 'P')
                 generador.retEnv(entorno.size)
-                if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
+                generador.agregarIf(contador,tamano,'==',salida_lbl)
+                generador.agregarPrint('c','44');
             generador.agregarExpresion(heap,heap,'1','+')
         
         coma += 1

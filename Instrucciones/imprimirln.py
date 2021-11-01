@@ -54,10 +54,13 @@ class Imprimirln(NodoAST):
             elif val.tipo == TIPO.ARREGLO:
                 #heap = generador.agregarTemporal()
                 #generador.obtener_stack(heap,val.valor)
-                print('----------------------------------------------')
+                print('------------------------A IMPRIMIR EL ARRGELO VOY PADRE----------------------')
                 print(val)
+                print(val.arreglo)
                 generador.agregarPrint('c','91')
+                generador.agregarPrint('c','32')
                 imprimirVector(generador,val.arreglo,val.valor,entorno)
+                generador.agregarPrint('c','32')
                 generador.agregarPrint('c','93');
         generador.agregarPrint('c','10')
 
@@ -97,8 +100,8 @@ def obtenerVector(tree, table, vector):
         
         return lista
 def imprimirVector(generador,arreglo,heap,entorno):
-    coma = 0
     #generador.agregarPrint('c','91');
+    coma = 0
     tamano = generador.agregarTemporal()
     generador.obtener_heap(tamano,heap)
     generador.agregarExpresion(heap,heap,'1','+')
@@ -121,8 +124,10 @@ def imprimirVector(generador,arreglo,heap,entorno):
             generador.agregarPrint('c','91')
             imprimirVector(generador,nuevo,heap,entorno)
             generador.agregarPrint('c','93')
-            if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
+            #generador.agregarIf(contador,tamano,'==',salida_lbl)
+           
+            generador.agregarPrint('c','32');
+            #generador.agregarPrint('c','44');
             #generador.agregarPrint('c','44');
             generador.agregarExpresion(heap,aux,'','')
             generador.agregarExpresion(heap,heap,'1','+')
@@ -133,12 +138,13 @@ def imprimirVector(generador,arreglo,heap,entorno):
             generador.obtener_heap(imprime,heap)
             if i == TIPO.ENTERO:
                 generador.agregarPrint('d',imprime);
-                if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
+                generador.agregarIf(contador,tamano,'==',salida_lbl)
+                generador.agregarPrint('c','44');
+               
             elif i == TIPO.DECIMAL:
                 generador.agregarPrint('f',imprime);
-                if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
+                generador.agregarIf(contador,tamano,'==',salida_lbl)
+                generador.agregarPrint('c','44');
             elif i == TIPO.CADENA:
                 generador.fPrintString()
                 temporal = generador.agregarTemporal()
@@ -150,8 +156,8 @@ def imprimirVector(generador,arreglo,heap,entorno):
                 tmp = generador.agregarTemporal()
                 generador.obtener_stack(tmp, 'P')
                 generador.retEnv(entorno.size)
-                if coma != len(arreglo)-1:
-                    generador.agregarPrint('c','44');
+                generador.agregarIf(contador,tamano,'==',salida_lbl)
+                generador.agregarPrint('c','44');
             generador.agregarExpresion(heap,heap,'1','+')
         coma += 1
     

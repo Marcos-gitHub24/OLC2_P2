@@ -24,14 +24,24 @@ class Aritmetica(NodoAST):
         generador = aux.obtenerGen()
         if self.operandoU == "":
             res_left = self.OperacionIzq.interpretar(entorno)
-            
+            temporal_recupero_guardo = None
+            bandera_llamada = False
             if isinstance(self.OperacionDer, Llamada) and entorno.dentro != None:
-                generador.guardarTemporales(res_left.valor,entorno.size,entorno)
+                temporal_recupero_guardo = res_left.valor
+                guardo = generador.agregarTemporal() 
+                generador.agregarExpresion(guardo,'P',entorno.size,'+')
+                generador.guardar_stack(guardo,temporal_recupero_guardo)
+                entorno.size = entorno.size + 1
+                bandera_llamada = True
             
             res_right = self.OperacionDer.interpretar(entorno)
 
-            if isinstance(self.OperacionDer, Llamada) and entorno.dentro != None:
-                generador.recuperarTemporales(res_left.valor,entorno.size,entorno)
+            if bandera_llamada:
+                recupero = generador.agregarTemporal()
+                entorno.size = entorno.size -1
+                generador.agregarExpresion(recupero,'P',entorno.size,'+')
+                generador.obtener_stack(temporal_recupero_guardo,recupero)
+                    
 
             if(res_left.tipo == TIPO.ERROR):
                 #tree.addExcepcion(res_left)
@@ -46,9 +56,13 @@ class Aritmetica(NodoAST):
                 return res_unario;  
         temporal = generador.agregarTemporal()
         operador = ""
+        print('????????????????????????????????????????EL IZQUIERDO Y DERECHO??????????????????????????????????????????????')
+        print(res_left)
+        print(res_right)
         if (self.operador==OperadorAritmetico.MAS):
             operador = '+'
             if(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.ENTERO):
+                print('??????????????????????????????????????????????????????????????????????????????????????')
                 generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.ENTERO, self.fila, self.columna, int(res_left.getValue()) + int(res_right.getValue()));
                 return Return(temporal, TIPO.ENTERO, True)
@@ -63,6 +77,7 @@ class Aritmetica(NodoAST):
                 return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.DECIMAL):
+                print("||||||||||||||||||||||||||||||||||DECIMAL MAS DECIMAL                            ||||||||")
                 generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) + float(res_right.getValue()));
                 return Return(temporal, TIPO.DECIMAL, True)

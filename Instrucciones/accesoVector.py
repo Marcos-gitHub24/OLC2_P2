@@ -1,4 +1,5 @@
 from Abstract.Return import Return
+from Expresiones.Identificador import Identificador
 from TS.Generador import Generador
 from Expresiones.Aritmetica import Aritmetica
 from Objeto.Primitivo import Primitivo
@@ -37,16 +38,21 @@ class Acceso(NodoAST):
                 #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede adadsadadasdasd un indice decimal",self.fila,self.columna)
             lista.append(result.valor)
+        
+        arrego_guardado = Identificador(self.identificador, self.fila, self.columna)
+        arreglo_usar = arrego_guardado.interpretar(entorno)
+        temp_inicio = arreglo_usar.valor
         variable = entorno.obtenerVariable(self.identificador)
         print("-----variable---")
         generador.addComment('ACA ACCEDO AL VECTOR')
         print(lista)
-        print(variable.arreglo)
+        #print(variable.arreglo)
         pivote = generador.agregarTemporal()
+        pivote = temp_inicio
         apunta_heap = generador.agregarTemporal()
-        obtengo = generador.agregarTemporal()
-        generador.agregarExpresion(obtengo,'P',variable.pos,'+')
-        generador.obtener_stack(pivote,obtengo)
+        #obtengo = generador.agregarTemporal()
+        #generador.agregarExpresion(obtengo,'P',variable.pos,'+')
+        #generador.obtener_stack(pivote,temp_inicio)
         tamano = generador.agregarTemporal()
         indice = generador.agregarTemporal()
         #extra = generador.agregarLabel()
@@ -60,6 +66,7 @@ class Acceso(NodoAST):
         if len(lista)==1:
             if isinstance(variable.arreglo[0],list):
                 tipo_retorno = TIPO.ARREGLO
+                arreglo_tipo = variable.arreglo[0]
             else:
                 tipo_retorno = variable.arreglo[0]
         else:

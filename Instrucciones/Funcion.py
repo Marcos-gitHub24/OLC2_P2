@@ -20,6 +20,8 @@ class Funcion(NodoAST):
     
     def interpretar(self, entorno):
         if isinstance(self.metodo.tipo,list):
+            print('+++++FIJATE QUE SU TIPO ES UNA LISTA++++++++++++++')
+            print(self.metodo.tipo)
             self.metodo.arreglo_tipo = self.metodo.tipo
             self.tipo = TIPO.ARREGLO
         else:
@@ -40,6 +42,7 @@ class Funcion(NodoAST):
         for i in self.metodo.getParametros():
             arreglo = None
             if isinstance(i.tipo,list):
+                print("[[[[[[[[[[[[[[[[[[[[[[[ARREGLO]]]]]]]]]]]]]]]]]]]]]]]")
                 print(i.tipo)
                 tipo = TIPO.ARREGLO
                 arreglo = i.tipo  #aca esta el arreglo de tipo

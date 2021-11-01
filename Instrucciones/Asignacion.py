@@ -48,6 +48,7 @@ class Asignacion(NodoAST):
             posicion = variable.pos
             variable.tipo = valor.tipo
             if not variable.isGlobal:
+                print('¡¡¡¡¡¡¡¡¡¡¡asigno¡¡¡¡¡¡¡¡¡¡')
                 posicion = generador.agregarTemporal()
                 generador.agregarExpresion(posicion,'P',variable.pos,'+')
             if valor.tipo == TIPO.BOOLEANO:

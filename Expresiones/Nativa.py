@@ -205,10 +205,12 @@ class Nativa(NodoAST):
                 generador.addComment('LENGTH LENGTH')
                 if isinstance(res_base, str):
                     arreglo = Identificador(res_base, self.fila, self.columna)
-                    arreglo = arreglo.interpretar(entorno)
-                    if arreglo.tipo == TIPO.ARREGLO:
+                    arreglo_a = arreglo.interpretar(entorno)
+                    if arreglo_a.tipo == TIPO.ARREGLO:
                         tamano = generador.agregarTemporal()
-                        generador.obtener_heap(tamano,arreglo.valor)
+                        #tmp = generador.agregarTemporal()
+                        #generador.obtener_stack(tmp,arreglo_a.valor)
+                        generador.obtener_heap(tamano,arreglo_a.valor)
                         return Return(tamano,TIPO.ENTERO,True)
                         #return Primitivo(TIPO.ENTERO, self.fila, self.columna, valor)
                     else:  
@@ -216,6 +218,8 @@ class Nativa(NodoAST):
                         return Excepcion(TIPO.ERROR, f"Solo se puede realizar el length en arreglos",self.fila,self.columna);
                 elif isinstance(res_base, Return):
                      if res_base.tipo == TIPO.ARREGLO:
+                        print("ENTRO A UN VECTOR SIN VARAIABLEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+                        print(res_base)
                         tamano = generador.agregarTemporal()
                         generador.obtener_heap(tamano,res_base.valor)
                         return Return(tamano,TIPO.ENTERO,True)
