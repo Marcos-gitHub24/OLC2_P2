@@ -136,6 +136,7 @@ class Nativa(NodoAST):
             if res_valor.tipo == TIPO.DECIMAL:
                 if res_base == "Int64":
                     generador.funcTrunc()
+                    generador.mod = True
                     temporal = generador.agregarTemporal()
                     generador.agregarExpresion(temporal, 'P', entorno.size, '+')
                     generador.agregarExpresion(temporal, temporal, '1', '+')
@@ -149,6 +150,7 @@ class Nativa(NodoAST):
                     #return Primitivo(TIPO.ENTERO, self.fila, self.columna, trunc(res_valor.getValue()))
                 elif res_base == "":
                     generador.funcTrunc()
+                    generador.mod = True
                     temporal = generador.agregarTemporal()
                     generador.agregarExpresion(temporal, 'P', entorno.size, '+')
                     generador.agregarExpresion(temporal, temporal, '1', '+')
@@ -171,7 +173,9 @@ class Nativa(NodoAST):
             if res_base.tipo == TIPO.ENTERO:
                 #nuevo = generador.agregarTemporal()
                 #generador.agregarExpresion(nuevo,res_base.valor,'','')
-                return Return(res_base.valor,TIPO.DECIMAL,True)
+                numero = generador.agregarTemporal()
+                generador.agregarExpresion(numero,res_base.valor,'','')
+                return Return(numero,TIPO.DECIMAL,True)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_base.getValue()))
             else:
                 #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar float a ese tipo",self.fila,self.columna))

@@ -31,6 +31,7 @@ class Identificador(NodoAST):
 
         if variable.tipo != TIPO.BOOLEANO:
             resultado = Return(temporal,variable.tipo,True)
+            resultado.struct = variable.struct
             resultado.arreglo = variable.arreglo
             return resultado
         if self.truelbl == None:

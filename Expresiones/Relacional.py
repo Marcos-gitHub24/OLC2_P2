@@ -138,7 +138,13 @@ class Relacional(NodoAST):
                 generador.colocarLbl(res_left.falselbl)
                 generador.agregarExpresion(temp_izquierdo, '0', '', '')
                 generador.colocarLbl(goto_derecho)
+
                 res_right = self.OperacionDer.interpretar(entorno)
+                if bandera_llamada:
+                    recupero = generador.agregarTemporal()
+                    entorno.size = entorno.size -1
+                    generador.agregarExpresion(recupero,'P',entorno.size,'+')
+                    generador.obtener_stack(temporal_recupero_guardo,recupero)
 
                 if res_right.tipo != TIPO.BOOLEANO:
                     return                          # retorno error 

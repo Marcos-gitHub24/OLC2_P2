@@ -13,97 +13,107 @@ from Expresiones.Struct import Struct
 from TS.Generador import Generador
 from TS.Tipo import TIPO
 
+
 class Llamada(NodoAST):
     def __init__(self, nombre, parametros, fila, columna):
         self.nombre = nombre
         self.parametros = parametros
         self.fila = fila
         self.columna = columna
-    
+
     def interpretar(self, entorno):
-        met = entorno.obtenerFuncion(self.nombre)
-        if met != None:
+        funcion = entorno.obtenerFuncion(self.nombre)
+        estructura = entorno.obtenerStruct(self.nombre)
+        if funcion != None and estructura == None:
             valores_parametros = []
             aux = Generador()
             generador = aux.obtenerGen()
             tamano = entorno.size
-            temporal_recupero_guardo = None  # esta variable es para cuando en una llamada se tiene como parametro otra llamada
-            for i in self.parametros:
-                bandera = False
-                if entorno.dentro != None and isinstance(i, Llamada):
-                    bandera = True
-                    generador.addComment('GUARDO') 
-                                              
-                    temporal_recupero_guardo = generador.temporales[len(generador.temporales)-1]  # aca guardo el ultimo temporal
-                    guardo = generador.agregarTemporal() 
-                    generador.agregarExpresion(guardo,'P',entorno.size,'+')
-                    generador.guardar_stack(guardo,temporal_recupero_guardo)
-                    entorno.size = entorno.size + 1
-                    
+            # esta variable es para cuando en una llamada se tiene como parametro otra llamada
+            temporal_recupero_guardo = None
+            if self.parametros != None:
+                for i in self.parametros:
+                    bandera = False
+                    if entorno.dentro != None and isinstance(i, Llamada):
+                        bandera = True
+                        generador.addComment('GUARDO')
 
-                valores_parametros.append(i.interpretar(entorno))
+                        temporal_recupero_guardo = generador.temporales[len(
+                            generador.temporales)-1]  # aca guardo el ultimo temporal
+                        guardo = generador.agregarTemporal()
+                        generador.agregarExpresion(
+                            guardo, 'P', entorno.size, '+')
+                        generador.guardar_stack(
+                            guardo, temporal_recupero_guardo)
+                        entorno.size = entorno.size + 1
 
-                if bandera:  #para recuperar el resultado despues de haber interpretado la llamada
-                    generador.addComment('RECUPERO')
-                    recupero = generador.agregarTemporal()
-                    entorno.size = entorno.size -1
-                    generador.agregarExpresion(recupero,'P',entorno.size,'+')   
-                    generador.obtener_stack(temporal_recupero_guardo,recupero) # aca recupero el temporal que se guardo
+                    valores_parametros.append(i.interpretar(entorno))
+
+                    if bandera:  # para recuperar el resultado despues de haber interpretado la llamada
+                        generador.addComment('RECUPERO')
+                        recupero = generador.agregarTemporal()
+                        entorno.size = entorno.size - 1
+                        generador.agregarExpresion(
+                            recupero, 'P', entorno.size, '+')
+                        # aca recupero el temporal que se guardo
+                        generador.obtener_stack(
+                            temporal_recupero_guardo, recupero)
 
             temporal = generador.agregarTemporal()
 
-            generador.agregarExpresion(temporal,'P',tamano+1,'+')
+            generador.agregarExpresion(temporal, 'P', tamano+1, '+')
             auxiliar = 0
 
             for i in valores_parametros:
                 auxiliar += 1
-                generador.guardar_stack(temporal,i.valor)
+                generador.guardar_stack(temporal, i.valor)
                 if auxiliar != len(valores_parametros):
-                    generador.agregarExpresion(temporal,temporal,'1','+')
+                    generador.agregarExpresion(temporal, temporal, '1', '+')
 
             generador.newEnv(tamano)
             generador.callFun(self.nombre)
-            generador.obtener_stack(temporal,'P')
+            generador.obtener_stack(temporal, 'P')
             generador.retEnv(tamano)
+
             tipo_return = TIPO.ENTERO
             es_arreglo = False
             arreglo_return = None
-            print('=========METO.TIPO ===============')
-            print(met.tipo)
-            print(met.metodo.arreglo_tipo)
-            if met.tipo== TIPO.ARREGLO:
-                print('=========entro aacacac===============')
+            struct_return = None
+            print('????????????????????????????????????????????????')
+            print(funcion.tipo)
+            if funcion.tipo == TIPO.ARREGLO:
                 tipo_return = TIPO.ARREGLO
-                arreglo_return = met.metodo.arreglo_tipo
+                arreglo_return = funcion.metodo.arreglo_tipo
+            elif funcion.tipo == TIPO.STRUCT:
+                tipo_return = TIPO.STRUCT
+                struct_return = funcion.metodo.struct
+                arreglo_return = funcion.metodo.arreglo_tipo
             else:
                 arreglo_return = None
-                tipo_return = met.tipo
-            print(met.tipo)
-            print('=========ARREGLO===============')
-            print(arreglo_return)
-            if met.tipo == TIPO.BOOLEANO:
+                tipo_return = funcion.tipo
+            if funcion.tipo == TIPO.BOOLEANO:
                 lbltrue = generador.agregarLabel()
                 lblfalse = generador.agregarLabel()
                 generador.agregarIf(temporal,'1','==',lbltrue)
                 generador.agregarGoto(lblfalse)
                 retornar = Return(temporal, tipo_return, True)
-                retornar.arreglo = met.metodo.arreglo_tipo
+                retornar.arreglo = funcion.metodo.arreglo_tipo
+                retornar.struct = struct_return
                 retornar.truelbl = lbltrue
                 retornar.falselbl = lblfalse
                 return retornar
             else:
-                
                 retornar = Return(temporal, tipo_return, True)
                 retornar.arreglo = arreglo_return
-                print('=========ARREGLO DEL RETORNO===============')
-                print(tipo_return)
-                print(arreglo_return)
+                retornar.struct = struct_return
                 return retornar
         else:
-            print("para structs")
+
+            nuevo_struct = AsignacionStruct(self.nombre,self.parametros,self.fila,self.columna)
+            return nuevo_struct.interpretar(entorno)
 
             
-        #else:
+        # else:
         #    return Excepcion("Semantico", f"Error al llamar a {self.nombre}", self.fila, self.columna)
 
                     

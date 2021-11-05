@@ -1,5 +1,6 @@
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
+from Expresiones.Identificador import Identificador
 from TS.Tipo import TIPO
 from Instrucciones.Return import Return
 from Abstract.NodoAST import NodoAST
@@ -18,15 +19,31 @@ class Struct(NodoAST):
         self.fila = fila
         self.columna = columna
     
-    def interpretar(self, tree, table):
-        met = table.getTabla(self.nombre)
+    def interpretar(self, entorno):
+        met = entorno.obtenerStruct(self.nombre)
         if met == None:
+            contador = 0            
             for i in self.atributos:
-                self.diccionario[i.nombre] = ""
-            simbolo = Simbolo(self.nombre, self.fila, self.columna, self)
-            table.setTabla(simbolo)
+                if isinstance(i.tipo,list):
+                    if i.tipo[0] == TIPO.STRUCT:
+                        obtener_struct = entorno.obtenerStruct(i.tipo[1])
+                        self.diccionario[i.nombre] = [i.tipo, contador, obtener_struct]
+                    else:
+                        self.diccionario[i.nombre] = [i.tipo, contador]
+                        print('~~~~~~~~~~ARREGLO~~~~~~~~~~~~~')
+                        print(i.tipo)
+                else:
+                    print('{{{{{{{ATRIBUTOS JAJAJAJA]]]]]]]]]')
+                    print(i.tipo)
+                    self.diccionario[i.nombre] = [i.tipo, contador]
+                contador += 1
+            entorno.guardarStruct(self.nombre, self.diccionario) 
+            print(entorno.structs)
+            #simbolo = Simbolo(self.nombre, self.fila, self.columna, self)
+            #table.setTabla(simbolo)
+            
         else:
-            tree.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
+            #tree.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
             return Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna)
 
     def getNodo(self):
@@ -99,4 +116,3 @@ class Struct(NodoAST):
         nodo.agregarHijoCadena("end")
         nodo.agregarHijoCadena(";")
         return nodo
-

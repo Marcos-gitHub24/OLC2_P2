@@ -4,7 +4,6 @@ from Abstract.NodoReporteArbol import NodoReporteArbol
 from Abstract.NodoAST import NodoAST
 from TS.Excepcion import Excepcion
 from TS.Tipo import TIPO
-from Abstract.Expresion import Expresion
 from Abstract.Return import Return
 from TS.Generador import Generador
 

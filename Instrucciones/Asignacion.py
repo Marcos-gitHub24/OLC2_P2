@@ -17,7 +17,7 @@ class Asignacion(NodoAST):
     def interpretar(self, entorno):
         generador = Generador()
         generador = generador.obtenerGen()
-        es_struct = False
+        #es_struct = False
         esta_heap = False
         if self.tipo == None:
             if self.expresion != None and isinstance(self.expresion, Struct) == False:
@@ -30,9 +30,9 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.CADENA:
                         esta_heap = True
                     if valor.tipo == TIPO.STRUCT:
-                        es_struct = True
+                        #es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct, valor.arreglo)
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct, valor.arreglo)
                     variable.tipo = valor.tipo
             else: # si es struct 
                 valor = self.expresion
@@ -41,9 +41,9 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.CADENA:
                         esta_heap = True
                     if valor.tipo == TIPO.STRUCT:
-                        es_struct = True
+                        #es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct,valor.arreglo)
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct,valor.arreglo)
                     variable.tipo = valor.tipo
             posicion = variable.pos
             variable.tipo = valor.tipo
@@ -73,9 +73,9 @@ class Asignacion(NodoAST):
                         if valor.tipo == TIPO.CADENA:
                             esta_heap = True
                         if valor.tipo == TIPO.STRUCT:
-                            es_struct = True
+                            #es_struct = True
                             esta_heap = True
-                        variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct, valor.arreglo)
+                        variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct, valor.arreglo)
                 else:
                     print('No son del mismo tipo')
                     return
@@ -86,9 +86,9 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.CADENA:
                         esta_heap = True
                     if valor.tipo == TIPO.STRUCT:
-                        es_struct = True
+                        #es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,es_struct,valor.arreglo)
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct,valor.arreglo)
             variable.tipo = valor.tipo
             posicion = variable.pos
             if not variable.isGlobal:
@@ -164,4 +164,3 @@ class Asignacion(NodoAST):
                 nodo.agregarHijoCadena("Boolean")
                 nodo.agregarHijoCadena(";")
             return nodo
-            

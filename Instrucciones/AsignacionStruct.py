@@ -1,86 +1,72 @@
+from re import A
+from Abstract.Return import Return
 from Expresiones.Struct import Struct
 from Instrucciones.Asignacion import Asignacion
 from Expresiones.Identificador import Identificador
 from Objeto.Primitivo import Primitivo
-from os import times
-from re import T
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from TS.Excepcion import Excepcion
 from Abstract.NodoAST import NodoAST
+from TS.Generador import Generador
 from TS.Simbolo import Simbolo
 from TS.Tipo import TIPO
 
 
 
 class AsignacionStruct(NodoAST):
-    def __init__(self, identificador, struct, atributos, fila, columna):
-        self.identificador = identificador
+    def __init__(self, struct, atributos, fila, columna):
+        #self.identificador = identificador
         self.atributos = atributos
         self.struct = struct
         self.fila = fila
         self.columna = columna
 
-    def interpretar(self, tree, table):
-        if self.identificador != None:
-            obtenerStruct = Identificador(self.struct, self.fila, self.columna)
-            estructura = obtenerStruct.interpretar(tree, table)
-            nueva_estructura = Struct(estructura.nombre, estructura.atributos, estructura.mutable, estructura.fila, estructura.columna)
-            for i in estructura.diccionario:
-                nueva_estructura.diccionario[i] = ""
-            nueva_estructura.mutable = estructura.mutable
-            print(estructura.mutable)
-            if len(self.atributos) == len(estructura.atributos):
-                iterador = 0
-                for clave in nueva_estructura.diccionario:
-                    if isinstance(self.atributos[iterador], Excepcion):
-                        tree.addExcepcion(self.atributos[iterador])
-                        return self.atributos[iterador]
-                    asignar = self.atributos[iterador].interpretar(tree, table)
-                    if nueva_estructura.atributos[iterador].tipo != None:
-                        if nueva_estructura.atributos[iterador].tipo == asignar.tipo:
-                            nueva_estructura.diccionario[clave] = self.atributos[iterador].interpretar(tree, table)
-                        else:
-                            tree.addExcepcion(Excepcion("Semantico", "Valor no conincide con el tipo", self.fila, self.columna))
-                            return Excepcion("Semantico", "Valor no conincide con el tipo", self.fila, self.columna)
+    def interpretar(self, entorno):
+        aux =  Generador()
+        generador = aux.obtenerGen()
+        estructura = entorno.obtenerStruct(self.struct)
+        print('__________struct_________________asdas___')
+        print(estructura)
+        print(self.atributos)
+        if estructura != None:
+            atrs = []
+            for i in self.atributos:
+                atrs.append(i.interpretar(entorno))
+                print(atrs[len(atrs)-1].valor)
+            contador = 0
+            
+            guardar_heap = generador.agregarTemporal()
+            generador.agregarExpresion(guardar_heap,'H','','')
+            retorno = Return(guardar_heap, TIPO.STRUCT, True)
+            tipo = ''
+            for i in estructura:
+                tipo = estructura[i][0]
+                print(tipo)
+                if isinstance(tipo,list):
+                    if tipo[0] != TIPO.STRUCT:
+                        tipo = TIPO.ARREGLO
+                        retorno.arreglo = atrs[contador].arreglo
                     else:
-                        nueva_estructura.diccionario[clave] = self.atributos[iterador].interpretar(tree, table)
-                    iterador += 1
-                asignar = Asignacion(self.identificador, nueva_estructura, None, self.fila, self.columna)
-                asignar.interpretar(tree, table)
-            else:
-                tree.addExcepcion(Excepcion("Semantico", "Numero de parametros no coincide", self.fila, self.columna))
-                return Excepcion("Semantico", "Numero de parametros no coincide", self.fila, self.columna)
+                        tipo = TIPO.STRUCT
+                        retorno.struct = atrs[contador].struct
+                print('***********************TIPO DE LA ASIGNACION***********')
+                print(tipo)
+                print(retorno.struct)
+                if atrs[contador].tipo == tipo:        
+                    generador.guardar_heap('H',atrs[contador].valor)
+                    generador.agregarExpresion('H','H','1','+')
+                else:
+                    # aca erro de tipos
+                    print(']]]]]]]]]]]]aca esta tu error[[[[[[[[[[[[[')
+                    return
+                contador +=1
+                
+            retorno.struct = estructura
+            return retorno
         else:
-            obtenerStruct = Identificador(self.struct, self.fila, self.columna)
-            estructura = obtenerStruct.interpretar(tree, table)
-            nueva_estructura = Struct(estructura.nombre, estructura.atributos, estructura.mutable, estructura.fila, estructura.columna)
-            for i in estructura.diccionario:
-                nueva_estructura.diccionario[i] = ""
-            nueva_estructura.mutable = estructura.mutable
-            print(estructura.mutable)
-            if len(self.atributos) == len(estructura.atributos):
-                iterador = 0
-                for clave in nueva_estructura.diccionario:
-                    if isinstance(self.atributos[iterador], Excepcion):
-                        tree.addExcepcion(self.atributos[iterador])
-                        return self.atributos[iterador]
-                    asignar = self.atributos[iterador].interpretar(tree, table)
-                    if nueva_estructura.atributos[iterador].tipo != None:
-                        if nueva_estructura.atributos[iterador].tipo == asignar.tipo:
-                            nueva_estructura.diccionario[clave] = self.atributos[iterador].interpretar(tree, table)
-                        else:
-                            tree.addExcepcion(Excepcion("Semantico", "Valor no conincide con el tipo", self.fila, self.columna))
-                            return Excepcion("Semantico", "Valor no conincide con el tipo", self.fila, self.columna)
-                    else:
-                        nueva_estructura.diccionario[clave] = self.atributos[iterador].interpretar(tree, table)
-                    iterador += 1
-                return nueva_estructura
-            else:
-                tree.addExcepcion(Excepcion("Semantico", "Numero de parametros no coincide", self.fila, self.columna))
-                return Excepcion("Semantico", "Numero de parametros no coincide", self.fila, self.columna)
-        
-        return None
+            print("No existe esa struct")
+            return
 
     def getNodo(self):
         nodo = NodoReporteArbol("ASIGNACION_STRUCT")

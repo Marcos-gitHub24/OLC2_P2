@@ -2,12 +2,14 @@ from Expresiones.atributo import atributo
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from TS.Tipo import TIPO
-from Instrucciones.Return import Return
 from Abstract.NodoAST import NodoAST
 from TS.Excepcion import Excepcion
 from TS.TablaSimbolos import TablaSimbolos
 from Instrucciones.Break import Break
 from TS.Simbolo import Simbolo
+from Abstract.Return import Return
+from TS.Generador import Generador
+    
 from Expresiones.Identificador import Identificador
 
 class AccesoStruct(NodoAST):
@@ -16,36 +18,79 @@ class AccesoStruct(NodoAST):
         self.atributos = atributos
         self.fila = fila
         self.columna = columna
-    def interpretar(self, tree, table):
+    def interpretar(self, entorno):
+        aux = Generador()
+        generador = aux.obtenerGen()
         obtenerStruct = Identificador(self.nombre, self.fila, self.columna)
-        estructura = obtenerStruct.interpretar(tree, table)
+        variable = obtenerStruct.interpretar(entorno)
+        tipo = ''
+        contador = 1
+        print(variable.struct)
         if len(self.atributos) == 1:
-            for clave in estructura.diccionario:
-                if clave == self.atributos[0]:
-                    return estructura.diccionario[clave]
+            for i in self.atributos:
+                if i in variable.struct.keys():
+                    print(variable.struct[i])
+                    tipo = variable.struct[i][0]
+                    if isinstance(variable.struct[i][0],list):
+                        tipo = TIPO.ARREGLO
+                    referencia = generador.agregarTemporal()
+                    regreso = generador.agregarTemporal() # el temporal que regresa el valor o referencia en el heap
+                    generador.agregarExpresion(referencia,variable.valor,variable.struct[i][1],'+') #aca tengo que sumar la posicion donde esta el atributo en heap
+                    generador.obtener_heap(regreso,referencia)
+                    retorno = Return(regreso,tipo,True)
+                    retorno.arreglo = variable.struct[i][0]
+                    retorno.struct = variable.struct
+                    return retorno
         else:
-            iterador = 0
-            encontro = False
-            diccionario = estructura.diccionario
-            clave = ""
-            while iterador < len(self.atributos):
-                for clave in diccionario:
-                    if clave == self.atributos[iterador] and iterador != len(self.atributos)-1:
-                        atrib = diccionario[clave]
-                        diccionario = atrib.diccionario
-                        encontro = True
-                        break
-                    if iterador == len(self.atributos)-1:
-                        if clave == self.atributos[iterador]:
-                            encontro = True
-                            break
-                if encontro:
-                    encontro =  False
+            diccionario = variable.struct
+            anterior = diccionario
+            print('-------dic----------')
+            print(diccionario)
+            valor = variable.valor
+            pivote = generador.agregarTemporal()
+            generador.agregarExpresion(pivote,valor,'','')
+            
+            for i in self.atributos:
+                if contador == len(self.atributos):
+                    referencia = generador.agregarTemporal()
+                    regreso = generador.agregarTemporal() # el temporal que regresa el valor o referencia en el heap
+                    
+                    retorno = Return(regreso,tipo,True)
+                    print('-------dic----------')
+                    print(diccionario)
+                    tipo = diccionario[i][0]
+                    if isinstance(diccionario[i][0],list):
+                        tipo = TIPO.ARREGLO
+                        retorno.arreglo = diccionario[i][0]   
+                        
+                        print(retorno.arreglo)        
+                    #generador.obtener_heap(referencia,pivote)
+                    generador.agregarExpresion(referencia,pivote,'','') # agregado
+                    generador.agregarExpresion(referencia,referencia,diccionario[i][1],'+') #aca tengo que sumar la posicion donde esta el atributo en heap
+                    generador.obtener_heap(regreso,referencia)
+
+                    retorno.struct = variable.struct
+                    retorno.tipo = tipo
+                    return retorno
+
                 else:
-                    tree.addExcepcion(Excepcion("Semantico", "No existe un atributo con ese nombre", self.fila, self.columna))
-                    return Excepcion("Semantico", "No existe un atributo con ese nombre", self.fila, self.columna)
-                iterador+=1
-            return diccionario[clave]
+                    if i in diccionario.keys():
+                        anterior = diccionario
+                        diccionario = diccionario[i][2]
+                        contador+=1
+                        print('ANTERIOR-------------------------')
+                        print(anterior)
+                        print(anterior[i][1])
+                        generador.agregarExpresion(pivote,pivote,anterior[i][1],'+')
+                        generador.obtener_heap(pivote,pivote)
+                        #generador.obtener_heap()
+
+                
+                    
+
+
+                    
+
 
         
 

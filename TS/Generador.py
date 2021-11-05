@@ -60,7 +60,7 @@ class Generador:
                 if temp != (len(self.temporales) - 1):
                     ret += ", "
             ret += " float64;\n"
-        ret += "var P, H float64;\nvar stack [10000]float64;\nvar heap [10000]float64;\n\n"
+        ret += "var P, H float64;\nvar stack [1000000]float64;\nvar heap [1000000]float64;\n\n"
         return ret
 
     def getCode(self):

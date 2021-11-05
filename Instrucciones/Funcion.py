@@ -1,3 +1,4 @@
+from enum import EnumMeta
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from TS.Tipo import TIPO
@@ -19,50 +20,111 @@ class Funcion(NodoAST):
         self.columna = columna
     
     def interpretar(self, entorno):
-        if isinstance(self.metodo.tipo,list):
-            print('+++++FIJATE QUE SU TIPO ES UNA LISTA++++++++++++++')
-            print(self.metodo.tipo)
-            self.metodo.arreglo_tipo = self.metodo.tipo
-            self.tipo = TIPO.ARREGLO
-        else:
-            self.tipo = self.metodo.tipo
-        entorno.guardarFuncion(self.nombre, self)
-        aux = Generador()
-        generador = aux.obtenerGen()
-        print('******************metodoTipo*********************')
-        print(self.tipo)
-        print('*************************************************')
-        nuevo_entorno = Entorno(entorno)
-        nuevo_entorno.dentro = '1'
-        lbl_return = generador.agregarLabel()
-        nuevo_entorno.lbl_return = lbl_return
-        nuevo_entorno.size = 1
-        
-        tipo = TIPO.ENTERO
-        for i in self.metodo.getParametros():
-            arreglo = None
-            if isinstance(i.tipo,list):
-                print("[[[[[[[[[[[[[[[[[[[[[[[ARREGLO]]]]]]]]]]]]]]]]]]]]]]]")
-                print(i.tipo)
-                tipo = TIPO.ARREGLO
-                arreglo = i.tipo  #aca esta el arreglo de tipo
+        if self.metodo.tipo != None:
+            bandera = True
+            if isinstance(self.metodo.tipo,list):
+                if self.metodo.tipo[0] != TIPO.STRUCT:
+                    print(self.metodo.tipo)
+                    self.metodo.arreglo_tipo = self.metodo.tipo
+                    self.tipo = TIPO.ARREGLO
+                else:
+                    self.tipo = TIPO.STRUCT
+                    self.metodo.struct = entorno.obtenerStruct(self.metodo.tipo[1])
+                    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+                    print(self.metodo.struct)
+                    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+                    bandera = False
+
             else:
-                tipo = i.tipo
-            nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), tipo == TIPO.STRUCT, arreglo)
-        
-        generador.addBeginFunc(self.nombre)
+                if bandera:
+                    self.tipo = self.metodo.tipo
+            entorno.guardarFuncion(self.nombre, self)
+            aux = Generador()
+            generador = aux.obtenerGen()
+            print('******************metodoTipo*********************')
+            print(self.tipo)
+            print('*************************************************')
+            nuevo_entorno = Entorno(entorno)
+            nuevo_entorno.dentro = '1'
+            lbl_return = generador.agregarLabel()
+            nuevo_entorno.lbl_return = lbl_return
+            nuevo_entorno.size = 1
+            
+            tipo = TIPO.ENTERO
+            if self.metodo.getParametros() != None:
+                for i in self.metodo.getParametros():
+                    arreglo = None
+                    bandera = True
+                    nombre_struct = ''
+                    if isinstance(i.tipo,list):
+                        if i.tipo[0] != TIPO.STRUCT:
+                            tipo = TIPO.ARREGLO
+                            arreglo = i.tipo  #aca esta el arreglo de tipo
+                            
+                        else:
+                            tipo = i.tipo[0]
+                            nombre_struct = i.tipo[1]
+                            bandera = False
+                    else:
+                        if bandera:
+                            tipo = i.tipo
+                    struct = nuevo_entorno.obtenerStruct(nombre_struct)
+                    nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), struct, arreglo)
+                
+            generador.addBeginFunc(self.nombre)
 
+            
+            for i in self.metodo.getInstrucciones():
+                i.interpretar(nuevo_entorno)
         
-        for i in self.metodo.getInstrucciones():
-            i.interpretar(nuevo_entorno)
-       
-            #print('ERROR')
-        #generador.agregarGoto(lbl_return)
-        generador.colocarLbl(lbl_return)
-        generador.addEndFunc()
+                #print('ERROR')
+            #generador.agregarGoto(lbl_return)
+            generador.colocarLbl(lbl_return)
+            generador.addEndFunc()
 
-            #tree.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
-            #return Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna)
+                #tree.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
+                #return Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna)
+        else:
+            entorno.guardarFuncion(self.nombre, self)
+            aux = Generador()
+            generador = aux.obtenerGen()
+            nuevo_entorno = Entorno(entorno)
+            nuevo_entorno.dentro = '1'
+            nuevo_entorno.size = 1
+            if self.metodo.getParametros() != None:
+                print('----entre..')
+                tipo = TIPO.ENTERO
+                
+                for i in self.metodo.getParametros():
+                    arreglo = None
+                    bandera = True
+                    nombre_struct = ''
+                    if isinstance(i.tipo,list):
+                        if i.tipo[0] != TIPO.STRUCT:
+                            tipo = TIPO.ARREGLO
+                            arreglo = i.tipo  #aca esta el arreglo de tipo
+                        else:
+                            tipo = i.tipo[0]
+                            nombre_struct = i.tipo[1]
+                            bandera = False
+                    else:
+                        if bandera:
+                            tipo = i.tipo
+                    struct = nuevo_entorno.obtenerStruct(nombre_struct)
+                    print('¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿')
+                    print(struct)
+                    print(i.tipo)
+                    nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), struct, arreglo)
+                
+            generador.addBeginFunc(self.nombre)
+
+            
+            for i in self.metodo.getInstrucciones():
+                i.interpretar(nuevo_entorno)
+        
+                #print('ERROR')
+            #generador.agregarGoto(lbl_return)
+            generador.addEndFunc()
 
     def getNodo(self):
         nodo = NodoReporteArbol("FUNCION")

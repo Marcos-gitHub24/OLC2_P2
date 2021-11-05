@@ -49,10 +49,6 @@ class Primitivo(NodoAST):
             resultado = Return(self.valor, self.tipo, False)
             resultado.truelbl = self.truelbl
             resultado.falselbl = self.falselbl
-            print('--primitivo--')
-            print(resultado.truelbl)
-            print(resultado.falselbl)
-            print('--primitivo--')
             return resultado
 
         elif self.tipo == TIPO.ARREGLO:
@@ -71,11 +67,7 @@ class Primitivo(NodoAST):
             #generador.guardar_heap('H', '-2')
             #generador.agregarExpresion('H','H','1','+')
             #generador.sumar_heap()
-            print('------------------------------')
-            print(self.valor)
             arreglo = obtenerVector(entorno,self.valor)
-            print('------------------------------')
-            print(arreglo)
             resultado.arreglo = arreglo
             return resultado
 

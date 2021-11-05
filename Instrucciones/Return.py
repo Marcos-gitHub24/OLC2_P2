@@ -17,6 +17,7 @@ class Return(NodoAST):
         generador = aux.obtenerGen()
         print(self.expresion)
         if self.expresion != None:
+            
             valor = self.expresion.interpretar(entorno)
             if valor.tipo == TIPO.BOOLEANO:
                 temporal = generador.agregarLabel()
@@ -28,8 +29,6 @@ class Return(NodoAST):
                 generador.guardar_stack('P','0')
                 generador.colocarLbl(temporal)
             else:
-                print('----ENTRE NO ES BOOL----')
-                print(valor.valor)
                 generador.guardar_stack('P',valor.valor)
         
         generador.agregarGoto(entorno.lbl_return)

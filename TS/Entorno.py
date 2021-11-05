@@ -4,72 +4,76 @@ class Entorno:
     
     def __init__(self, prev):
         self.prev = prev
+
+        self.variables = {}
+        self.funciones = {}
+        self.structs = {}
+
         self.lbl_break = ''
         self.lbl_return = ''
         self.lbl_continue = ''
         self.lbl_return = ''
         self.dentro = None
-        # NUEVO
         self.size = 0
+        
         if(prev != None):
             self.size = self.prev.size
             self.lbl_return = self.prev.lbl_return
             self.lbl_break = self.prev.lbl_break
             self.lbl_continue = self.prev.lbl_continue
         
-        self.variables = {}
-        self.arreglos = {}
-        self.functions = {}
-        self.structs = {}
+        
     
     def guardarVariable(self, identificacion, tipo, inHeap, struct, arreglo):
         if identificacion in self.variables.keys():
-            print("Variable ya existe")
-            # agregar error a una tabla
+            # agregar un error 
+            return None
         else:
             simbolo = Symbol(identificacion, tipo, self.size, self.prev == None, inHeap, struct, arreglo)
             self.size += 1
             self.variables[identificacion] = simbolo
         return self.variables[identificacion]
 
-    def guardarFuncion(self, idFunc, function):
-        if idFunc in self.functions.keys():
-            print("Función repetida")
+    def guardarFuncion(self, identificacion, funcion):
+        if identificacion in self.funciones.keys():
+            # agregar un error de que no existe la funcion
+            return None
         else:
-            self.functions[idFunc] = function
+            self.funciones[identificacion] = funcion
     
-    def guardarStruct(self, idStruct, attr):
-        if idStruct in self.structs.keys():
-            print("Struct repetido")
+    def guardarStruct(self, identificacion, atributo):
+        if identificacion in self.structs.keys():
+            # agregar un error de que no existe la estructura
+            return None
         else:
-            self.structs[idStruct] = attr
+            self.structs[identificacion] = atributo
 
-    def obtenerVariable(self, idVar):
-        env = self
-        while env != None:
-            if idVar in env.variables.keys():
-                return env.variables[idVar]
-            env = env.prev
+    def obtenerVariable(self, identificacion):
+        entorno = self
+        while entorno != None:
+            if identificacion in entorno.variables.keys():
+                return entorno.variables[identificacion]
+            entorno = entorno.prev
         return None
     
-    def obtenerFuncion(self, idFunc):
-        env = self
-        while env != None:
-            if idFunc in env.functions.keys():
-                return env.functions[idFunc]
-            env = env.prev
+    def obtenerFuncion(self, identificacion):
+        entorno = self
+        while entorno != None:
+            if identificacion in entorno.funciones.keys():
+                return entorno.funciones[identificacion]
+            entorno = entorno.prev
         return None
         
-    def obtenerStruct(self, idStruct):
-        env = self
-        while env != None:
-            if idStruct in env.structs.keys():
-                return env.structs[idStruct]
-            end = end.prev
+    def obtenerStruct(self, identificacion):
+        entorno = self
+        while entorno != None:
+            if identificacion in entorno.structs.keys():
+                return entorno.structs[identificacion]
+            entorno = entorno.prev
         return None
 
     def obtenerGlobal(self):
-        env = self
-        while env.prev != None:
-            env = env.prev
-        return env
+        entorno = self
+        while entorno.prev != None:
+            entorno = entorno.prev
+        return entorno

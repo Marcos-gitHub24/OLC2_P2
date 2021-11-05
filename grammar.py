@@ -399,6 +399,7 @@ def p_lista_atributos5(t):
                   | RSTRING
                   | RCHAR
                   | RBOOL
+                  | tipo_vector
                   | ID
     '''
     if t[1] == 'Int64':
@@ -411,8 +412,11 @@ def p_lista_atributos5(t):
         t[0] = TIPO.CHARACTER
     elif t[1] == 'String':
         t[0] = TIPO.CADENA
+    elif isinstance(t[1],list):
+        t[0] = t[1]
     else:
-        t[0] == TIPO.STRUCT
+        print(' ACA DE BERIA DE ESTAR ENTRANDO')
+        t[0] = [TIPO.STRUCT, t[1]]
 
 #def p_asigna_struct1(t):
  #   'asigna_struct  : ID IGUAL ID PARA expresiones PARC '
@@ -746,6 +750,14 @@ def p_funcion_2(t) :
     'funcion_instr     : RFUNC ID PARA PARC DOSPUNTOS DOSPUNTOS tipo_funcion instrucciones REND PUNTOCOMA'
     t[0] = Funcion(t[2], Metodo(t[8], None, t[7]), t.lineno(1), find_column(input, t.slice[1]))
 
+def p_funcion_3(t) :
+    'funcion_instr     : RFUNC ID PARA PARC instrucciones REND PUNTOCOMA'
+    t[0] = Funcion(t[2], Metodo(t[5], None, None), t.lineno(1), find_column(input, t.slice[1]))
+
+def p_funcion_4(t) :
+    'funcion_instr     : RFUNC ID PARA parametros PARC instrucciones REND PUNTOCOMA'
+    t[0] = Funcion(t[2], Metodo(t[6], t[4], None), t.lineno(1), find_column(input, t.slice[1]))
+
 def p_tipo_funcion(t):
     '''tipo_funcion      : RINT
                          | RFLOAT
@@ -768,7 +780,7 @@ def p_tipo_funcion(t):
     elif isinstance(t[1],list):
         t[0] = t[1]
     else:
-        t[0] = TIPO.STRUCT
+        t[0] = [TIPO.STRUCT, t[1]]
 
     
 
@@ -813,7 +825,7 @@ def p_parametro2(t) :
     elif isinstance(t[4],list):
         t[0] = Parametro(t[1], t[4])
     else:
-        t[0] = Parametro(t[1],TIPO.STRUCT)
+        t[0] = Parametro(t[1],[TIPO.STRUCT,t[4]])
 
 def p_parametro_vector(t):
     '''tipo_vector  : RVECTOR LLAVEA tipo_vector LLAVEC '''

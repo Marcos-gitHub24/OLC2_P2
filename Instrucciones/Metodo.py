@@ -4,6 +4,7 @@ class Metodo:
         self.parametros = parametros
         self.tipo = tipo
         self.arreglo_tipo = None
+        self.struct = None
 
     def getInstrucciones(self):
         return self.instrucciones
