@@ -39,10 +39,6 @@ class Relacional(NodoAST):
         bandera = False
         if not isinstance(res_left, Struct) and not isinstance(res_right, Struct):
             
-            '''if(res_left.tipo == TipoObjeto.ERROR):
-                return res_left
-            if(res_right.tipo == TipoObjeto.ERROR):
-                return res_right'''
             operador = ''
             if self.operador == OperadorRelacional.MAYORIGUAL:
                 operador = '>='
@@ -111,7 +107,20 @@ class Relacional(NodoAST):
                     
                     # return Primitivo(TIPO.BOOLEANO, self.fila, self.columna, str(res_left.getValue()) >= str(str(res_right.getValue())))
                 elif(res_left.tipo == TIPO.NULO or res_right.tipo == TIPO.NULO):
-                    bandera = True
+                    #bandera = True
+                    if self.truelbl == None:
+                        self.truelbl = generador.agregarLabel()
+                    if self.falselbl == None:
+                        self.falselbl = generador.agregarLabel()
+                    #izquierdo = generador.agregarTemporal()
+                    #derecho = generador.agregarTemporal()
+                    #generador.obtener_heap(izquierdo,res_left.valor)
+                    #generador.obtener_heap(derecho,res_right.valor)
+                    generador.agregarIf(res_left.valor, res_right.valor, operador, self.truelbl)
+                    generador.agregarGoto(self.falselbl)
+                    resultado.truelbl = self.truelbl
+                    resultado.falselbl = self.falselbl
+                    return resultado
                     # return Primitivo(TIPO.BOOLEANO, self.fila, self.columna, bool(res_left.getValue()) >= bool(res_right.getValue()))
                 if bandera:
                     if self.truelbl == None:
@@ -124,7 +133,7 @@ class Relacional(NodoAST):
                     resultado.falselbl = self.falselbl
                     return resultado
                 else:
-                    #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la comparacion con esos operadores",self.fila,self.columna))
+                    generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la comparacion con esos operadores",self.fila,self.columna))
                     return Excepcion(TIPO.ERROR, f"No puede realizarse la comparacion con esos operadores", self.fila, self.columna)
             else:
                                 

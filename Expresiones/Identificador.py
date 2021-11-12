@@ -20,7 +20,8 @@ class Identificador(NodoAST):
         variable = entorno.obtenerVariable(self.identificador)
         if variable == None:
             print('No hay variable')
-            return
+            generador.TSglobal.addExcepcion(Excepcion("Semantico", "Variable " + self.identificador + " no encontrada.", self.fila, self.columna))
+            return Excepcion("Semantico", "Variable " + self.identificador + " no encontrada.", self.fila, self.columna)
         
         temporal = generador.agregarTemporal()
         posicion = variable.pos

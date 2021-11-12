@@ -24,25 +24,27 @@ class ForCadena(NodoAST):
 
     def interpretar(self, entorno):
         nuevo_entorno = Entorno(entorno)
+        nuevo_entorno.setEntorno("For")
         valor_inicio = self.inicio.interpretar(nuevo_entorno)
-        print(valor_inicio)
+        aux = Generador()
+        generador = aux.obtenerGen()
+        generador.TSglobal.agregarTabla(nuevo_entorno)
         if(valor_inicio.tipo == TIPO.ERROR):
-            #tree.addExcepcion(valor_inicio)
+            generador.TSglobal.addExcepcion(valor_inicio)
             return valor_inicio;
 
         if valor_inicio.tipo == TIPO.CADENA:     
             if(valor_inicio.tipo == TIPO.ENTERO):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar este for con un entero",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar este for con un entero",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar este for con un entero",self.fila,self.columna)
             if(valor_inicio.tipo == TIPO.DECIMAL):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
             if(valor_inicio.tipo == TIPO.BOOLEANO):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un boolean",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un boolean",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
             
-            aux = Generador()
-            generador = aux.obtenerGen()
+            
             #asignar = Asignacion(self.id, self.inicio, None, self.fila, self.columna)
             #asignar.interpretar(nuevo_entorno)
             
@@ -54,7 +56,7 @@ class ForCadena(NodoAST):
             #guardar = Identificador(self.id, self.fila, self.columna)
             #guardar_interpretar = guardar.interpretar(nuevo_entorno)
             
-            simbolo = nuevo_entorno.guardarVariable(self.id, valor_inicio.tipo, True, False,None)
+            simbolo = nuevo_entorno.guardarVariable(self.id, valor_inicio.tipo, False, False,None, self.fila, self.columna)
             heap = generador.agregarTemporal()
             #temp_inicio = guardar_interpretar.valor
             temp_inicio = valor_inicio.valor
@@ -107,16 +109,16 @@ class ForCadena(NodoAST):
 
         else:
             if(valor_inicio.tipo == TIPO.ENTERO):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar este for con un entero",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar este for con un entero",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar este for con un entero",self.fila,self.columna)
             if(valor_inicio.tipo == TIPO.DECIMAL):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un decimal",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un decimal",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
             if(valor_inicio.tipo == TIPO.BOOLEANO):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un boolean",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un boolean",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un boolean",self.fila,self.columna)
             if(valor_inicio.tipo == TIPO.CHARACTER):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
 
             aux = Generador()
@@ -134,15 +136,12 @@ class ForCadena(NodoAST):
             tipo_retorno = TIPO.ENTERO
             arreglo_enviar = valor_inicio.arreglo 
             if isinstance(valor_inicio.arreglo[0],list):
-                print("si es arreglo ")
                 tipo_retorno = TIPO.ARREGLO
                 arreglo_enviar = valor_inicio.arreglo[0]
             else:
                 tipo_retorno = valor_inicio.arreglo[0]
-            print("----arreglos--------")
-            print(valor_inicio.arreglo)
             generador.addComment('aca empieza el FOR EN ARREGLO')
-            simbolo = nuevo_entorno.guardarVariable(self.id, tipo_retorno, True, False,arreglo_enviar)
+            simbolo = nuevo_entorno.guardarVariable(self.id, tipo_retorno, False, False,arreglo_enviar, self.fila, self.columna)
             heap = generador.agregarTemporal()
             #temp_inicio = guardar_interpretar.valor
             temp_inicio = generador.agregarTemporal()

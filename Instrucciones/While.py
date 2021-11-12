@@ -23,7 +23,12 @@ class While(NodoAST):
         lbl_while = generador.agregarLabel()
         generador.colocarLbl(lbl_while)
         condicion = self.condicion.interpretar(entorno)
+        if isinstance(condicion, Excepcion):
+            generador.TSglobal.addExcepcion(condicion)
+            return condicion
         nuevo_entorno = Entorno(entorno)
+        nuevo_entorno.setEntorno("While")
+        generador.TSglobal.agregarTabla(nuevo_entorno)
 
         nuevo_entorno.lbl_break = condicion.falselbl
         nuevo_entorno.lbl_continue = lbl_while
@@ -32,8 +37,6 @@ class While(NodoAST):
         for i in self.instrucciones:
             i.interpretar(nuevo_entorno)
         generador.agregarGoto(lbl_while)
-        print('---lblwhile----')
-        print(condicion.falselbl)
         generador.colocarLbl(condicion.falselbl)
        
 

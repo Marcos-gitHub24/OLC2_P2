@@ -30,9 +30,6 @@ class Funcion(NodoAST):
                 else:
                     self.tipo = TIPO.STRUCT
                     self.metodo.struct = entorno.obtenerStruct(self.metodo.tipo[1])
-                    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-                    print(self.metodo.struct)
-                    print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
                     bandera = False
 
             else:
@@ -41,10 +38,9 @@ class Funcion(NodoAST):
             entorno.guardarFuncion(self.nombre, self)
             aux = Generador()
             generador = aux.obtenerGen()
-            print('******************metodoTipo*********************')
-            print(self.tipo)
-            print('*************************************************')
             nuevo_entorno = Entorno(entorno)
+            nuevo_entorno.setEntorno(self.nombre)
+            generador.TSglobal.agregarTabla(nuevo_entorno)
             nuevo_entorno.dentro = '1'
             lbl_return = generador.agregarLabel()
             nuevo_entorno.lbl_return = lbl_return
@@ -69,7 +65,7 @@ class Funcion(NodoAST):
                         if bandera:
                             tipo = i.tipo
                     struct = nuevo_entorno.obtenerStruct(nombre_struct)
-                    nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), struct, arreglo)
+                    nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), struct, arreglo, self.fila, self.columna)
                 
             generador.addBeginFunc(self.nombre)
 
@@ -78,7 +74,7 @@ class Funcion(NodoAST):
                 i.interpretar(nuevo_entorno)
         
                 #print('ERROR')
-            #generador.agregarGoto(lbl_return)
+            generador.agregarGoto(lbl_return)
             generador.colocarLbl(lbl_return)
             generador.addEndFunc()
 
@@ -89,10 +85,11 @@ class Funcion(NodoAST):
             aux = Generador()
             generador = aux.obtenerGen()
             nuevo_entorno = Entorno(entorno)
+            nuevo_entorno.setEntorno(self.nombre)
+            generador.TSglobal.agregarTabla(nuevo_entorno)
             nuevo_entorno.dentro = '1'
             nuevo_entorno.size = 1
             if self.metodo.getParametros() != None:
-                print('----entre..')
                 tipo = TIPO.ENTERO
                 
                 for i in self.metodo.getParametros():
@@ -111,10 +108,7 @@ class Funcion(NodoAST):
                         if bandera:
                             tipo = i.tipo
                     struct = nuevo_entorno.obtenerStruct(nombre_struct)
-                    print('¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿')
-                    print(struct)
-                    print(i.tipo)
-                    nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), struct, arreglo)
+                    nuevo_entorno.guardarVariable(i.nombre,tipo, (tipo == TIPO.CADENA or tipo == TIPO.STRUCT or tipo == TIPO.ARREGLO), struct, arreglo, self.fila, self.columna)
                 
             generador.addBeginFunc(self.nombre)
 
@@ -123,7 +117,7 @@ class Funcion(NodoAST):
                 i.interpretar(nuevo_entorno)
         
                 #print('ERROR')
-            #generador.agregarGoto(lbl_return)
+            #generador.agregarGoto(nuevo_entorno.lbl_return)
             generador.addEndFunc()
 
     def getNodo(self):

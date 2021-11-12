@@ -29,21 +29,19 @@ class Modifica(NodoAST):
         for i in self.lista:
             result = i.interpretar(entorno)
             if(result.tipo == TIPO.CADENA):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna)
             if(result.tipo == TIPO.CHARACTER):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna)
             if(result.tipo == TIPO.BOOLEANO):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna)
             if(result.tipo == TIPO.DECIMAL):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede adadsadadasdasd un indice decimal",self.fila,self.columna)
             lista.append(result.valor)
         variable = entorno.obtenerVariable(self.identificador)
-        print("-----variable---")
-        print(variable.arreglo)
         pivote = generador.agregarTemporal()
         apunta_heap = generador.agregarTemporal()
         #obtengo = generador.agregarTemporal()

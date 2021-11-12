@@ -26,33 +26,36 @@ class For(NodoAST):
 
     def interpretar(self, entorno):
         nuevo_entorno = Entorno(entorno)
+        nuevo_entorno.setEntorno("For")
         valor_inicio = self.inicio.interpretar(entorno)
-        if(valor_inicio.tipo == TIPO.ERROR):
-            #tree.addExcepcion(valor_inicio)
-            return 
-        valor_final = self.final.interpretar(entorno)
-        if(valor_final.tipo == TIPO.ERROR):
-            #tree.addExcepcion(valor_final)
-            return 
-
-        if(valor_inicio.tipo == TIPO.CADENA):
-            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
-            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna)
-        if(valor_inicio.tipo == TIPO.CHARACTER):
-            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
-            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
-        if(valor_final.tipo == TIPO.CADENA):
-            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
-            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna)
-        if(valor_final.tipo == TIPO.CHARACTER):
-            #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
-            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
-
         asignar = Asignacion(self.id, self.inicio, None, self.fila, self.columna)
         asignar.interpretar(nuevo_entorno)
         
         aux = Generador()
         generador = aux.obtenerGen()
+        generador.TSglobal.agregarTabla(nuevo_entorno)
+        if(valor_inicio.tipo == TIPO.ERROR):
+            generador.TSglobal.addExcepcion(valor_inicio)
+            return valor_inicio
+        valor_final = self.final.interpretar(entorno)
+        if(valor_final.tipo == TIPO.ERROR):
+            generador.TSglobal.addExcepcion(valor_final)
+            return valor_final
+
+        if(valor_inicio.tipo == TIPO.CADENA):
+            generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
+            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna)
+        if(valor_inicio.tipo == TIPO.CHARACTER):
+            generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna))
+            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
+        if(valor_final.tipo == TIPO.CADENA):
+            generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
+            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna)
+        if(valor_final.tipo == TIPO.CHARACTER):
+            generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizar un for con una cadena",self.fila,self.columna))
+            return  Excepcion(TIPO.ERROR, f"No puede realizar un for con un caracter",self.fila,self.columna)
+
+        
         generador.addComment('EMPIEZA EL FOR EN RANGO')
         temp_final = generador.agregarTemporal()
         generador.agregarExpresion(temp_final,valor_final.valor,'','')

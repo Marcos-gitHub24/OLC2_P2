@@ -26,14 +26,11 @@ class AsignacionStruct(NodoAST):
         aux =  Generador()
         generador = aux.obtenerGen()
         estructura = entorno.obtenerStruct(self.struct)
-        print('__________struct_________________asdas___')
-        print(estructura)
-        print(self.atributos)
+        
         if estructura != None:
             atrs = []
             for i in self.atributos:
                 atrs.append(i.interpretar(entorno))
-                print(atrs[len(atrs)-1].valor)
             contador = 0
             
             guardar_heap = generador.agregarTemporal()
@@ -42,7 +39,6 @@ class AsignacionStruct(NodoAST):
             tipo = ''
             for i in estructura:
                 tipo = estructura[i][0]
-                print(tipo)
                 if isinstance(tipo,list):
                     if tipo[0] != TIPO.STRUCT:
                         tipo = TIPO.ARREGLO
@@ -50,23 +46,25 @@ class AsignacionStruct(NodoAST):
                     else:
                         tipo = TIPO.STRUCT
                         retorno.struct = atrs[contador].struct
-                print('***********************TIPO DE LA ASIGNACION***********')
-                print(tipo)
-                print(retorno.struct)
                 if atrs[contador].tipo == tipo:        
                     generador.guardar_heap('H',atrs[contador].valor)
                     generador.agregarExpresion('H','H','1','+')
                 else:
-                    # aca erro de tipos
-                    print(']]]]]]]]]]]]aca esta tu error[[[[[[[[[[[[[')
-                    return
+                    if atrs[contador].tipo == TIPO.NULO:
+                        generador.guardar_heap('H',atrs[contador].valor)
+                        generador.agregarExpresion('H','H','1','+')
+                    else:
+                        # aca erro de tipos
+                        generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No coincide el tipo",self.fila,self.columna))
+                        return  Excepcion(TIPO.ERROR, f"Semantico, No coincide el tipo",self.fila,self.columna)
+                    
                 contador +=1
-                
             retorno.struct = estructura
             return retorno
         else:
-            print("No existe esa struct")
-            return
+            generador.TSglobal.addExcepcion(Excepcion("Semantico", "Numero de parametros no coincide", self.fila, self.columna))
+            return Excepcion("Semantico", "Numero de parametros no coincide", self.fila, self.columna)
+            
 
     def getNodo(self):
         nodo = NodoReporteArbol("ASIGNACION_STRUCT")

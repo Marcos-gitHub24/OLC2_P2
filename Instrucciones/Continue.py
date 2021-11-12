@@ -13,8 +13,6 @@ class Continue(NodoAST):
         aux = Generador()
         generador = aux.obtenerGen()
         generador.agregarGoto(entorno.lbl_continue)
-        print('--continue--')
-        print(entorno.lbl_continue)
         return self
 
     def getNodo(self):

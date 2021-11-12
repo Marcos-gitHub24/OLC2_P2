@@ -354,9 +354,18 @@ def p_struct2(t):
 
 def p_modifica_struct(t):
     ''' 
-    modifica_struct  : ID PUNTO ID IGUAL expresion
+    modifica_struct  : ID puntos_struct IGUAL expresion
     '''
-    t[0] = ModificaStruct(t[1], t[3], t[5],  t.lineno(1), find_column(input, t.slice[1]))
+    t[0] = ModificaStruct(t[1], t[2], t[4],  t.lineno(1), find_column(input, t.slice[1]))
+
+'''def p_modifica_Struct2(t):
+    'puntos : puntos PUNTO ID'
+    t[1].append(t[3])
+    t[0] = t[1]
+
+def p_modifica_Struct3(t):
+    'puntos  : ID'
+    t[0] = t[1]'''
 
 def p_lista_atributos(t):
     '''
@@ -472,11 +481,11 @@ def p_asignacion3(t) :
     asignacion_instr     : ID                 
                         
     '''
-    t[0] = Asignacion(t[1], None, None, t.lineno(1), find_column(input, t.slice[1]))
+    t[0] = Asignacion(None, None, None, t.lineno(1), find_column(input, t.slice[1]))
 
 def p_asignacion4(t):
     'asignacion_instr    : RGLOBAL ID'
-    t[0] = Asignacion(t[2], None, None, t.lineno(1), find_column(input, t.slice[1]))
+    t[0] = Asignacion(None, None, None, t.lineno(1), find_column(input, t.slice[1]))
 
 
 
@@ -514,17 +523,17 @@ def p_asignacion6(t) :
                                     
     '''
     if t[5] == 'Int64':
-         t[0] = Asignacion(t[2], None, TIPO.ENTERO, t.lineno(1), find_column(input, t.slice[1]))
+         t[0] = Asignacion(None, None, TIPO.ENTERO, t.lineno(1), find_column(input, t.slice[1]))
     elif t[5] == 'String':
-        t[0] = Asignacion(t[2], None, TIPO.CADENA, t.lineno(1), find_column(input, t.slice[1]))    
+        t[0] = Asignacion(None, None, TIPO.CADENA, t.lineno(1), find_column(input, t.slice[1]))    
     elif t[5] == 'Char':
-        t[0] = Asignacion(t[2], None, TIPO.CHARACTER, t.lineno(1), find_column(input, t.slice[1]))
+        t[0] = Asignacion(None, None, TIPO.CHARACTER, t.lineno(1), find_column(input, t.slice[1]))
     elif t[5] == 'Bool':
-        t[0] = Asignacion(t[2], None, TIPO.BOOLEANO, t.lineno(1), find_column(input, t.slice[1]))
+        t[0] = Asignacion(None, None, TIPO.BOOLEANO, t.lineno(1), find_column(input, t.slice[1]))
     elif t[5] == 'Float64':
-        t[0] = Asignacion(t[2], None, TIPO.DECIMAL, t.lineno(1), find_column(input, t.slice[1]))
+        t[0] = Asignacion(None, None, TIPO.DECIMAL, t.lineno(1), find_column(input, t.slice[1]))
     else:
-        t[0] = Asignacion(t[2], None, TIPO.STRUCT, t.lineno(1), find_column(input, t.slice[1]))
+        t[0] = Asignacion(None, None, TIPO.STRUCT, t.lineno(1), find_column(input, t.slice[1]))
 
 def p_asignacion_tipo(t):
     '''
@@ -538,6 +547,8 @@ def p_asignacion_tipo(t):
                           | ID IGUAL PARA expresion PARC DOSPUNTOS DOSPUNTOS RBOOL
                           | ID IGUAL expresion DOSPUNTOS DOSPUNTOS RFLOAT
                           | ID IGUAL PARA expresion PARC DOSPUNTOS DOSPUNTOS RFLOAT
+                          | ID IGUAL expresion DOSPUNTOS DOSPUNTOS tipo_vector
+                          | ID IGUAL PARA expresion PARC DOSPUNTOS DOSPUNTOS tipo_vector
                           | ID IGUAL expresion DOSPUNTOS DOSPUNTOS ID
                           | ID IGUAL PARA expresion PARC DOSPUNTOS DOSPUNTOS ID
     '''
@@ -552,6 +563,8 @@ def p_asignacion_tipo(t):
             t[0] = Asignacion(t[1], t[4], TIPO.BOOLEANO, t.lineno(1), find_column(input, t.slice[1]))
          elif t[8] == 'Float64':
             t[0] = Asignacion(t[1], t[4], TIPO.DECIMAL, t.lineno(1), find_column(input, t.slice[1]))
+         elif isinstance(t[8],list):
+            t[0] = Asignacion(t[1], t[4], TIPO.ARREGLO, t.lineno(1), find_column(input, t.slice[1]))
          else:
              t[0] = Asignacion(t[1], t[4], TIPO.STRUCT, t.lineno(1), find_column(input, t.slice[1]))
     else:
@@ -565,6 +578,8 @@ def p_asignacion_tipo(t):
             t[0] = Asignacion(t[1], t[3], TIPO.BOOLEANO, t.lineno(1), find_column(input, t.slice[1]))
          elif t[6] == 'Float64':
             t[0] = Asignacion(t[1], t[3], TIPO.DECIMAL, t.lineno(1), find_column(input, t.slice[1]))
+         elif isinstance(t[6],list):
+            t[0] = Asignacion(t[1], t[3], TIPO.ARREGLO, t.lineno(1), find_column(input, t.slice[1]))
          else:
              t[0] = Asignacion(t[1], t[3], TIPO.STRUCT, t.lineno(1), find_column(input, t.slice[1]))
 
@@ -1075,9 +1090,12 @@ def parse(inp) :
     input = inp
     instrucciones=parser.parse(inp)
     genAux = Generador()
-    genAux.cleanAll()
+    genAux.limpiar()
     generator = genAux.obtenerGen()
     entorno = Entorno(None)
+    entorno.setEntorno("Global")
+    generator.TSglobal = entorno
+    generator.TSglobal.agregarTabla(entorno)
     for i in instrucciones:
         i.interpretar(entorno)
     '''ast = Arbol(instrucciones)
@@ -1100,7 +1118,9 @@ def parse(inp) :
 
     '''
     lexer.lineno = 1
-    return generator.getCode()
+    print('[][][][][][')
+    print(generator.TSglobal)
+    return generator
 
 
 

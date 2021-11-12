@@ -23,30 +23,24 @@ class Logica(NodoAST):
         #if(self.operacionU == ""):
         aux = Generador()
         generador = aux.obtenerGen()
+        label_final = ''
+        resultado = Return('', TIPO.BOOLEANO, False)
         if self.truelbl == None:
             self.truelbl = generador.agregarLabel()
         if self.falselbl == None:
             self.falselbl = generador.agregarLabel()
-        label_final = ''
-        resultado = Return('', TIPO.BOOLEANO, False)
-            #if(self.OperacionIzq.tipo == TIPO.ERROR):
-                #tree.addExcepcion(res_left)
-                #return self.OperacionIzq.tipo;
-            #if(self.OperacionDer.tipo == TIPO.ERROR):
-                #tree.addExcepcion(res_right)
-                #return self.OperacionDer;
-        '''else:
-            if(self.operacionU.tipo == TIPO.ERROR):
-                #tree.addExcepcion(res_u)
-                return self.operacionU;'''
+        if isinstance(self.OperacionIzq, Excepcion):
+            entorno.addExcepcion(self.OperacionIzq)
+            return self.OperacionIzq
+
+        if isinstance(self.OperacionDer, Excepcion):
+            entorno.addExcepcion(self.OperacionDer)
+            return self.OperacionIzq
 
         if (self.operador==OperadorLogico.OR):  # En el or se comparte la etiqueta verdadera, por eso le asingo los mismos valores
             self.OperacionIzq.truelbl = self.truelbl
             self.OperacionDer.truelbl = self.truelbl
             label_final = generador.agregarLabel()
-            print('----')
-            print(label_final)
-            print('----')
             self.OperacionIzq.falselbl = label_final
             self.OperacionDer.falselbl = self.falselbl
             #return Primitivo(TIPO.BOOLEANO,self.fila, self.columna, bool(res_left.getValue()) or bool(res_right.getValue()));
@@ -66,17 +60,21 @@ class Logica(NodoAST):
         if self.operacionU == '':
             res_left = self.OperacionIzq.interpretar(entorno)
             if res_left.tipo != TIPO.BOOLEANO:
-                return
+                generador.TSglobal.addExcepcion(Excepcion("Semantico", "Variable " + self.identificador + " no encontrada.", self.fila, self.columna))
+                return Excepcion("Semantico", "El operador izquierdo no es booleano.", self.fila, self.columna)
             generador.colocarLbl(label_final)
             res_right = self.OperacionDer.interpretar(entorno)
             if res_right.tipo != TIPO.BOOLEANO:
-                return
+                generador.TSglobal.addExcepcion(Excepcion("Semantico", "Variable " + self.identificador + " no encontrada.", self.fila, self.columna))
+                return Excepcion("Semantico", "El operador derecho no es booleano.", self.fila, self.columna)
             resultado.truelbl = self.truelbl
             resultado.falselbl = self.falselbl
             return resultado
         else:
             res_unario = self.operacionU.interpretar(entorno)
             if res_unario.tipo != TIPO.BOOLEANO:
+                generador.TSglobal.addExcepcion(Excepcion("Semantico", "Variable " + self.identificador + " no encontrada.", self.fila, self.columna))
+                return Excepcion("Semantico", "El operador no es booleano.", self.fila, self.columna)
                 return
             resultado.truelbl = self.truelbl
             resultado.falselbl = self.falselbl

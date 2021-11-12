@@ -53,9 +53,6 @@ class Imprimirln(NodoAST):
             elif val.tipo == TIPO.ARREGLO:
                 #heap = generador.agregarTemporal()
                 #generador.obtener_stack(heap,val.valor)
-                print('------------------------A IMPRIMIR EL ARRGELO VOY PADRE----------------------')
-                print(val)
-                print(val.arreglo)
                 generador.agregarPrint('c','91')
                 generador.agregarPrint('c','32')
                 imprimirVector(generador,val.arreglo,val.valor,entorno)

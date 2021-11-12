@@ -25,14 +25,14 @@ class AccesoStruct(NodoAST):
         variable = obtenerStruct.interpretar(entorno)
         tipo = ''
         contador = 1
-        print(variable.struct)
         if len(self.atributos) == 1:
             for i in self.atributos:
                 if i in variable.struct.keys():
-                    print(variable.struct[i])
                     tipo = variable.struct[i][0]
                     if isinstance(variable.struct[i][0],list):
                         tipo = TIPO.ARREGLO
+                        
+
                     referencia = generador.agregarTemporal()
                     regreso = generador.agregarTemporal() # el temporal que regresa el valor o referencia en el heap
                     generador.agregarExpresion(referencia,variable.valor,variable.struct[i][1],'+') #aca tengo que sumar la posicion donde esta el atributo en heap
@@ -41,11 +41,13 @@ class AccesoStruct(NodoAST):
                     retorno.arreglo = variable.struct[i][0]
                     retorno.struct = variable.struct
                     return retorno
+
+                else:
+                    generador.TSglobal.addExcepcion(Excepcion("Semantico", "No existe un atributo con ese nombre", self.fila, self.columna))
+                    return Excepcion("Semantico", "No existe un atributo con ese nombre", self.fila, self.columna)
         else:
             diccionario = variable.struct
             anterior = diccionario
-            print('-------dic----------')
-            print(diccionario)
             valor = variable.valor
             pivote = generador.agregarTemporal()
             generador.agregarExpresion(pivote,valor,'','')
@@ -54,11 +56,9 @@ class AccesoStruct(NodoAST):
                 if contador == len(self.atributos):
                     referencia = generador.agregarTemporal()
                     regreso = generador.agregarTemporal() # el temporal que regresa el valor o referencia en el heap
-                    
-                    retorno = Return(regreso,tipo,True)
-                    print('-------dic----------')
-                    print(diccionario)
                     tipo = diccionario[i][0]
+                    retorno = Return(regreso,tipo,True)
+                    
                     if isinstance(diccionario[i][0],list):
                         tipo = TIPO.ARREGLO
                         retorno.arreglo = diccionario[i][0]   
@@ -78,12 +78,13 @@ class AccesoStruct(NodoAST):
                         anterior = diccionario
                         diccionario = diccionario[i][2]
                         contador+=1
-                        print('ANTERIOR-------------------------')
-                        print(anterior)
-                        print(anterior[i][1])
                         generador.agregarExpresion(pivote,pivote,anterior[i][1],'+')
                         generador.obtener_heap(pivote,pivote)
                         #generador.obtener_heap()
+                    else:
+                        generador.TSglobal.addExcepcion(Excepcion("Semantico", "No existe un atributo con ese nombre", self.fila, self.columna))
+                        return Excepcion("Semantico", "No existe un atributo con ese nombre", self.fila, self.columna)
+        
 
                 
                     

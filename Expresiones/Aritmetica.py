@@ -44,15 +44,15 @@ class Aritmetica(NodoAST):
                     
 
             if(res_left.tipo == TIPO.ERROR):
-                #tree.addExcepcion(res_left)
+                generador.TSglobal.addExcepcion(res_left)
                 return res_left;
             if(res_right.tipo == TIPO.ERROR):
-                #tree.addExcepcion(res_right)
+                generador.TSglobal.addExcepcion(res_right)
                 return res_right;
         else:
             res_unario = self.operandoU.interpretar(entorno)
             if(res_unario.tipo == TIPO.ERROR):
-                #tree.addExcepcion(res_unario)
+                generador.TSglobal.addExcepcion(res_unario)
                 return res_unario;  
         temporal = generador.agregarTemporal()
         operador = ""
@@ -73,12 +73,11 @@ class Aritmetica(NodoAST):
                 return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.DECIMAL):
-                print("||||||||||||||||||||||||||||||||||DECIMAL MAS DECIMAL                            ||||||||")
                 generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) + float(res_right.getValue()));
                 return Return(temporal, TIPO.DECIMAL, True)
             else:
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la suma con esos operadores",self.fila,self.columna))
+                entorno.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la suma con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse la suma con esos operadores",self.fila,self.columna)
         
         if (self.operador==OperadorAritmetico.MENOS):
@@ -104,7 +103,7 @@ class Aritmetica(NodoAST):
                 return Return(temporal, TIPO.DECIMAL, True)
         
             else:
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la resta con esos operadores",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la resta con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse la resta con esos operadores",self.fila,self.columna)
 
         if (self.operador==OperadorAritmetico.POR):
@@ -152,7 +151,7 @@ class Aritmetica(NodoAST):
                 return Return(resultado,TIPO.CADENA, True)
 
             else:
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la multiplicacion con esos operadores",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la multiplicacion con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse la multiplicacion con esos operadores",self.fila,self.columna)
         
 
@@ -185,11 +184,13 @@ class Aritmetica(NodoAST):
                 generador.agregarPrint('c','97')
                 generador.agregarPrint('c','116')
                 generador.agregarPrint('c','104')
+                generador.agregarPrint('c','32')
                 generador.agregarPrint('c','69')
                 generador.agregarPrint('c','114')
                 generador.agregarPrint('c','114')
                 generador.agregarPrint('c','111')
                 generador.agregarPrint('c','114')
+                generador.agregarPrint('c','10')
                 generador.agregarExpresion(temporal,'0','','')
                 generador.agregarGoto(lbl_salida)
                 generador.colocarLbl(lbl_correcto)
@@ -197,7 +198,7 @@ class Aritmetica(NodoAST):
                 generador.colocarLbl(lbl_salida)
                 return Return(temporal, TIPO.DECIMAL, True)
             else:
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la division con esos operadores",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la division con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse la division con esos operadores",self.fila,self.columna)
         
 
@@ -256,41 +257,70 @@ class Aritmetica(NodoAST):
 
 
             else:
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la potencia con esos operadores",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la potencia con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse la potencia con esos operadores",self.fila,self.columna)
         
 
         if (self.operador==OperadorAritmetico.MODULO):
             operador = '%'
             generador.mod = True
+            tipo_modulo = TIPO.ENTERO
+            bandera_mod = False
             if(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.ENTERO):
-                generador.modulo(temporal,res_left.valor,res_right.valor)
+                
+                tipo_modulo = TIPO.ENTERO
+                bandera_mod = True
                 #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, int(res_left.getValue()) % int(res_right.getValue()));
-                return Return(temporal, TIPO.ENTERO, True)
+                #return Return(temporal, TIPO.ENTERO, True)
 
 
             elif(res_left.tipo == TIPO.ENTERO and res_right.tipo == TIPO.DECIMAL):
-                generador.modulo(temporal,res_left.valor,res_right.valor)
+                tipo_modulo = TIPO.DECIMAL
+                bandera_mod = True
                 #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, int(res_left.getValue()) % float(res_right.getValue()));
-                return Return(temporal, TIPO.DECIMAL, True)
+                #return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.ENTERO):
-                generador.modulo(temporal,res_left.valor,res_right.valor)
+                tipo_modulo = TIPO.DECIMAL
+                bandera_mod = True
                 #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) % int(res_right.getValue()));
-                return Return(temporal, TIPO.DECIMAL, True)
+                #return Return(temporal, TIPO.DECIMAL, True)
 
             elif(res_left.tipo == TIPO.DECIMAL and res_right.tipo == TIPO.DECIMAL):
-                generador.modulo(temporal,res_left.valor,res_right.valor)
+                tipo_modulo = TIPO.DECIMAL
+                bandera_mod = True
                 #generador.agregarExpresion(temporal, res_left.valor, res_right.valor, operador)
                 #return Primitivo(TIPO.DECIMAL, self.fila, self.columna, float(res_left.getValue()) % float(res_right.getValue()));
-                return Return(temporal, TIPO.DECIMAL, True)
+                # Return(temporal, TIPO.DECIMAL, True)
             else:
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse el modulo con esos operadores",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse el modulo con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse el modulo con esos operadores",self.fila,self.columna)
-        
+
+            if bandera_mod:
+                correcto = generador.agregarLabel()
+                incorrecto = generador.agregarLabel()
+                generador.agregarIf(res_right.valor,'0','==',incorrecto)
+                generador.modulo(temporal,res_left.valor,res_right.valor)
+                generador.agregarGoto(correcto)
+                generador.colocarLbl(incorrecto)
+                generador.agregarPrint('c','77')
+                generador.agregarPrint('c','97')
+                generador.agregarPrint('c','116')
+                generador.agregarPrint('c','104')
+                generador.agregarPrint('c','32')
+                generador.agregarPrint('c','69')
+                generador.agregarPrint('c','114')
+                generador.agregarPrint('c','114')
+                generador.agregarPrint('c','111')
+                generador.agregarPrint('c','114')
+                generador.agregarPrint('c','10')
+                generador.agregarExpresion(temporal,'0','','')
+                generador.colocarLbl(correcto)
+                return Return(temporal, tipo_modulo, True)
+
         
         if (self.operador==OperadorAritmetico.MENOSUNARIO):
             operador = '-'
@@ -305,7 +335,7 @@ class Aritmetica(NodoAST):
             else:
                 #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede realizarse la negacion con esos operadores",self.fila,self.columna))
                 return Excepcion(TIPO.ERROR, f"No puede realizarse la negacion con esos operadores",self.fila,self.columna)
-        #tree.addExcepcion(Excepcion(TIPO.ERROR, f"Operador desconocido: {self.operador}",self.fila,self.columna))
+        generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"Operador desconocido: {self.operador}",self.fila,self.columna))
         return Excepcion(TIPO.ERROR, f"Operador desconocido: {self.operador}",self.fila,self.columna);
 
 

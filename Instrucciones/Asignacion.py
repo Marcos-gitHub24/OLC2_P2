@@ -1,6 +1,7 @@
 from Expresiones.Struct import Struct
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from Abstract.NodoAST import NodoAST
+from TS.Excepcion import Excepcion
 from TS.Generador import Generador
 from TS.Tipo import TIPO
 
@@ -15,6 +16,8 @@ class Asignacion(NodoAST):
         self.columna = columna
 
     def interpretar(self, entorno):
+        if self.identificador == None:
+            return
         generador = Generador()
         generador = generador.obtenerGen()
         #es_struct = False
@@ -24,7 +27,9 @@ class Asignacion(NodoAST):
                 valor = self.expresion.interpretar(entorno)
                 if isinstance(valor, Struct) == False:
                     if valor.tipo == TIPO.ERROR:
-                        return 
+                        generador.TSglobal.addExcepcion(valor)
+                        return valor
+                         
                 variable = entorno.obtenerVariable(self.identificador)
                 if variable == None:
                     if valor.tipo == TIPO.CADENA:
@@ -32,7 +37,9 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.STRUCT:
                         #es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct, valor.arreglo)
+                    if valor.tipo == TIPO.ARREGLO:
+                        esta_heap = True
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct, valor.arreglo, self.fila, self.columna)
                     variable.tipo = valor.tipo
             else: # si es struct 
                 valor = self.expresion
@@ -43,12 +50,13 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.STRUCT:
                         #es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct,valor.arreglo)
+                    if valor.tipo == TIPO.ARREGLO:
+                        esta_heap = True
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct,valor.arreglo, self.fila, self.columna)
                     variable.tipo = valor.tipo
             posicion = variable.pos
             variable.tipo = valor.tipo
             if not variable.isGlobal:
-                print('¡¡¡¡¡¡¡¡¡¡¡asigno¡¡¡¡¡¡¡¡¡¡')
                 posicion = generador.agregarTemporal()
                 generador.agregarExpresion(posicion,'P',variable.pos,'+')
             if valor.tipo == TIPO.BOOLEANO:
@@ -66,7 +74,8 @@ class Asignacion(NodoAST):
             if self.expresion != None and isinstance(self.expresion, Struct) == False:
                 valor = self.expresion.interpretar(entorno)
                 if valor.tipo == TIPO.ERROR:
-                    return 
+                    generador.TSglobal.addExcepcion(valor)
+                    return valor
                 if valor.tipo == self.tipo:
                     variable = entorno.obtenerVariable(self.identificador)
                     if variable == None:
@@ -75,10 +84,13 @@ class Asignacion(NodoAST):
                         if valor.tipo == TIPO.STRUCT:
                             #es_struct = True
                             esta_heap = True
-                        variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct, valor.arreglo)
+                        if valor.tipo == TIPO.ARREGLO:
+                            esta_heap = True
+                        variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct, valor.arreglo, self.fila, self.columna)
                 else:
                     print('No son del mismo tipo')
-                    return
+                    generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"Semantico, No son del mismo tipo", self.fila, self.columna))
+                    return None
             elif self.expresion !=None and isinstance(self.expresion,Struct):
                 valor = self.expresion
                 variable = entorno.obtenerVariable(self.identificador)
@@ -88,7 +100,9 @@ class Asignacion(NodoAST):
                     if valor.tipo == TIPO.STRUCT:
                         #es_struct = True
                         esta_heap = True
-                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct,valor.arreglo)
+                    if valor.tipo == TIPO.ARREGLO:
+                        esta_heap = True
+                    variable = entorno.guardarVariable(self.identificador,valor.tipo,esta_heap,valor.struct,valor.arreglo, self.fila, self.columnas)
             variable.tipo = valor.tipo
             posicion = variable.pos
             if not variable.isGlobal:

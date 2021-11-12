@@ -38,13 +38,10 @@ class Llamada(NodoAST):
                         bandera = True
                         generador.addComment('GUARDO')
 
-                        temporal_recupero_guardo = generador.temporales[len(
-                            generador.temporales)-1]  # aca guardo el ultimo temporal
+                        temporal_recupero_guardo = generador.temporales[len(generador.temporales)-1]  # aca guardo el ultimo temporal
                         guardo = generador.agregarTemporal()
-                        generador.agregarExpresion(
-                            guardo, 'P', entorno.size, '+')
-                        generador.guardar_stack(
-                            guardo, temporal_recupero_guardo)
+                        generador.agregarExpresion(guardo, 'P', entorno.size, '+')
+                        generador.guardar_stack(guardo, temporal_recupero_guardo)
                         entorno.size = entorno.size + 1
 
                     valores_parametros.append(i.interpretar(entorno))
@@ -53,11 +50,9 @@ class Llamada(NodoAST):
                         generador.addComment('RECUPERO')
                         recupero = generador.agregarTemporal()
                         entorno.size = entorno.size - 1
-                        generador.agregarExpresion(
-                            recupero, 'P', entorno.size, '+')
+                        generador.agregarExpresion(recupero, 'P', entorno.size, '+')
                         # aca recupero el temporal que se guardo
-                        generador.obtener_stack(
-                            temporal_recupero_guardo, recupero)
+                        generador.obtener_stack(temporal_recupero_guardo, recupero)
 
             temporal = generador.agregarTemporal()
 
@@ -79,8 +74,6 @@ class Llamada(NodoAST):
             es_arreglo = False
             arreglo_return = None
             struct_return = None
-            print('????????????????????????????????????????????????')
-            print(funcion.tipo)
             if funcion.tipo == TIPO.ARREGLO:
                 tipo_return = TIPO.ARREGLO
                 arreglo_return = funcion.metodo.arreglo_tipo

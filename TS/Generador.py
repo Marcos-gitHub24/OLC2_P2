@@ -4,18 +4,14 @@ from .Entorno import Entorno
 class Generador:
     generador = None
     def __init__(self):
-        # Contadores
-        self.countTemp = 0
-        self.countLabel = 0
-        # Code
+        self.numeroTemporales = 0
+        self.numeroLabel = 0
         self.codigo = ''
         self.funciones = ''
         self.nativas = ''
         self.es_funcion = False
         self.es_nativa = False
-        # Lista de Temporales
         self.temporales = []
-        # Lista de Nativas
         self.printString = False
         self.potencia = False
         self.concat = False
@@ -25,34 +21,17 @@ class Generador:
         self.parseFloat = False
         self.toUpper = False
         self.toLower = False
+        self.toString = False
         self.trunc = False
         self.mod = False
-
-    def cleanAll(self):
-        # Contadores
-        self.countTemp = 0
-        self.countLabel = 0
-        # Code
-        self.codigo = ''
-        self.funciones = ''
-        self.nativas = ''
-        self.es_funcion = False
-        self.es_nativa = False
-        # Lista de Temporales
-        self.temporales = []
-        # Lista de Nativas
-        self.printString = False
-        Generador.generador = Generador()
+        self.TSglobal = None
     
-    #############
-    # CODE
-    #############
     def getHeader(self):
         if self.mod:
-            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt"\n\t"math"\n)\n\n'
+            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt";\n\t"math"\n);\n\n'
             self.mod = False
         else:
-            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt"\n)\n\n'
+            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt";\n);\n\n'
         if len(self.temporales) > 0:
             ret += 'var '
             for temp in range(len(self.temporales)):
@@ -60,7 +39,7 @@ class Generador:
                 if temp != (len(self.temporales) - 1):
                     ret += ", "
             ret += " float64;\n"
-        ret += "var P, H float64;\nvar stack [1000000]float64;\nvar heap [1000000]float64;\n\n"
+        ret += "var P, H float64;\nvar stack [9999999]float64;\nvar heap [9999999]float64;\n\n"
         return ret
 
     def getCode(self):
@@ -69,11 +48,11 @@ class Generador:
     def agregarCodigo(self, codigo):
         if(self.es_nativa):
             if(self.nativas == ''):
-                self.nativas = self.nativas + '/*-----NATIVES-----*/\n'
+                self.nativas = self.nativas + '/*-----NATIVAS-----*/\n'
             self.nativas = self.nativas + codigo
         elif(self.es_funcion):
             if(self.funciones == ''):
-                self.funciones = self.funciones + '/*-----FUNCS-----*/\n'
+                self.funciones = self.funciones + '/*-----FUNCIONES-----*/\n'
             self.funciones = self.funciones + '\t' +  codigo
         else:
             self.codigo = self.codigo + '\t' +  codigo
@@ -90,14 +69,14 @@ class Generador:
         self.agregarCodigo("\n")
 
     def agregarTemporal(self):
-        temp = f't{self.countTemp}'
-        self.countTemp += 1             
+        temp = f't{self.numeroTemporales}'
+        self.numeroTemporales += 1             
         self.temporales.append(temp)
         return temp
 
     def agregarLabel(self):
-        label = f'L{self.countLabel}'
-        self.countLabel += 1
+        label = f'L{self.numeroLabel}'
+        self.numeroLabel += 1
         return label
 
     def colocarLbl(self, label):
@@ -150,9 +129,6 @@ class Generador:
     def modulo(self,temporal,pos1,pos2):
         self.agregarCodigo(f'{temporal}=math.Mod({pos1},{pos2});\n')
 
-
-
-    # INSTRUCCIONES
     def agregarPrint(self, type, value):
         if type == 'd':
             self.agregarCodigo(f'fmt.Printf("%{type}", int({value}));\n')
@@ -181,36 +157,19 @@ class Generador:
         self.es_nativa = True
 
         self.addBeginFunc('printString')
-        # Label para salir de la funcion
         returnLbl = self.agregarLabel()
-        # Label para la comparacion para buscar fin de cadena
         compareLbl = self.agregarLabel()
-
-        # Temporal puntero a Stack
         tempP = self.agregarTemporal()
-
-        # Temporal puntero a Heap
         tempH = self.agregarTemporal()
-
         self.agregarExpresion(tempP, 'P', '1', '+')
-
         self.obtener_stack(tempH, tempP)
-
-        # Temporal para comparar
         tempC = self.agregarTemporal()
-
         self.colocarLbl(compareLbl)
-
         self.obtener_heap(tempC, tempH)
-
         self.agregarIf(tempC, '-1', '==', returnLbl)
-
         self.agregarPrint('c', tempC)
-
         self.agregarExpresion(tempH, tempH, '1', '+')
-
         self.agregarGoto(compareLbl)
-
         self.colocarLbl(returnLbl)
         self.addEndFunc()
         self.es_nativa = False
@@ -561,6 +520,67 @@ class Generador:
         self.addEndFunc()
         self.es_nativa = False
 
+    def funcToString(self):
+        if (self.toString):
+            return
+        self.toString = True
+        self.es_nativa = True
+        self.addBeginFunc('toString')
+
+        compruebo = self.agregarTemporal()
+        multiplico = self.agregarTemporal()
+        guardo_heap = self.agregarTemporal()
+        self.agregarExpresion(guardo_heap,'H','','')
+        self.agregarExpresion(compruebo,'1','','')
+        self.agregarExpresion(multiplico,'1','','')
+
+        posicion = self.agregarTemporal()
+        self.agregarExpresion(posicion,'P','1','+')
+        obtengo = self.agregarTemporal()
+        self.obtener_stack(obtengo,posicion)
+
+        lbl_multiplica = self.agregarLabel()
+        lbl_while1 = self.agregarLabel()
+        lbl_while2 = self.agregarLabel()
+        lbl_salida = self.agregarLabel()
+
+        self.colocarLbl(lbl_multiplica)
+        self.agregarExpresion(multiplico,multiplico,'10','*')
+        self.agregarIf(obtengo,multiplico,'<',lbl_while1)
+        self.agregarExpresion(compruebo,multiplico,'','')
+        self.agregarGoto(lbl_multiplica)
+
+        self.colocarLbl(lbl_while1)
+        self.agregarIf(compruebo,'1','!=',lbl_while2)
+        resultado = self.agregarTemporal()
+        self.agregarExpresion(resultado,obtengo,'48','+')
+        self.guardar_heap('H',resultado)
+        self.sumar_heap()
+        self.guardar_heap('H','-1')
+        self.sumar_heap()
+        self.agregarGoto(lbl_salida)
+
+        self.colocarLbl(lbl_while2)
+        self.agregarIf(compruebo,'1','==',lbl_while1)
+        division = self.agregarTemporal()
+        self.agregarExpresion(division,obtengo,compruebo,'/')
+        modulo = self.agregarTemporal()
+        self.modulo(modulo,division,'1')
+        self.agregarExpresion(division,division,modulo,'-')
+        self.agregarExpresion(resultado,division,'48','+')
+        self.guardar_heap('H',resultado)
+        self.sumar_heap()
+        multiplico_compruebo = self.agregarTemporal()
+        self.agregarExpresion(multiplico_compruebo,division,compruebo,'*')
+        self.agregarExpresion(obtengo,obtengo,multiplico_compruebo,'-')
+        self.agregarExpresion(compruebo,compruebo,'10','/')
+        self.agregarGoto(lbl_while2)
+        self.colocarLbl(lbl_salida)
+        self.guardar_stack('P',guardo_heap)
+
+        self.addEndFunc()
+        self.es_nativa = False
+
     def funcTrunc(self):
         if (self.trunc):
             return
@@ -591,3 +611,15 @@ class Generador:
 
         self.addEndFunc()
         self.es_nativa = False
+
+    def limpiar(self):
+        self.numeroTemporales = 0
+        self.numeroLabel = 0
+        self.codigo = ''
+        self.funciones = ''
+        self.nativas = ''
+        self.es_funcion = False
+        self.es_nativa = False
+        self.temporales = []
+        self.printString = False
+        Generador.generador = Generador()

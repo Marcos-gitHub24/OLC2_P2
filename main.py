@@ -31,7 +31,7 @@ def output():
     global parsed_tree
     result = parse(tmp_val)
     parsed_tree = result
-    return render_template('output.html', input=result)
+    return render_template('output.html', input=result.getCode())
 
 @app.route("/reporte")# de esta forma le indicamos la ruta para acceder a esta pagina. 'Decoramos' la funcion. 
 def reporte():
@@ -49,7 +49,7 @@ def tree():
 @app.route("/tabla")# de esta forma le indicamos la ruta para acceder a esta pagina. 'Decoramos' la funcion. 
 def table():
     global parsed_tree
-    archivo_dot = parsed_tree.crearTabla(parsed_tree)
+    archivo_dot = parsed_tree.TSglobal.crearTabla(parsed_tree.TSglobal)
     grafo = graphviz.Source(archivo_dot)
     tabla = grafo.pipe(format='svg')
     tabla = base64.b64encode(tabla).decode('utf-8')
@@ -59,7 +59,8 @@ def table():
 @app.route("/error")# de esta forma le indicamos la ruta para acceder a esta pagina. 'Decoramos' la funcion. 
 def error():
     global parsed_tree
-    archivo_dot = parsed_tree.tablaError(parsed_tree)
+    print(parsed_tree)
+    archivo_dot = parsed_tree.TSglobal.tablaError(parsed_tree.TSglobal)
     grafo = graphviz.Source(archivo_dot)
     errores = grafo.pipe(format='svg')
     errores = base64.b64encode(errores).decode('utf-8')

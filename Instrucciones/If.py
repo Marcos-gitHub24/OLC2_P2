@@ -22,12 +22,14 @@ class If(NodoAST):
 
     def interpretar(self,entorno):
         condicion = self.condicion.interpretar(entorno)
+        aux = Generador()
+        generador = aux.obtenerGen()
         if isinstance(condicion, Excepcion):
+            generador.TSglobal.addExcepcion(condicion)
             return condicion
         if condicion.tipo == TIPO.BOOLEANO:
             bandera = True
-            aux = Generador()
-            generador = aux.obtenerGen()
+            
             generador.colocarLbl(condicion.truelbl)
             if self.salir == None:
                 self.salir = generador.agregarLabel()
@@ -36,8 +38,6 @@ class If(NodoAST):
             for i in self.instruccionesIf:
                 i.interpretar(entorno)
             generador.agregarGoto(self.salir)
-            print('--if--')
-            print(self.salir)
 
             if isinstance(self.instruccionesElse, If):
                 self.instruccionesElse.salir = self.salir
@@ -61,6 +61,7 @@ class If(NodoAST):
             
           
         else:
+            generador.TSglobal.addExcepcion(Excepcion("Semantico", "Tipo de dato no booleano en IF.", self.fila, self.columna))
             return Excepcion("Semantico", "Tipo de dato no booleano en IF.", self.fila, self.columna)
 
     def getNodo(self):

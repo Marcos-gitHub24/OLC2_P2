@@ -26,26 +26,24 @@ class Acceso(NodoAST):
         for i in self.lista:
             result = i.interpretar(entorno)
             if(result.tipo == TIPO.CADENA):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice cadena",self.fila,self.columna)
             if(result.tipo == TIPO.CHARACTER):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice char",self.fila,self.columna)
             if(result.tipo == TIPO.BOOLEANO):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna))
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna))
                 return  Excepcion(TIPO.ERROR, f"No puede tener un indice booleano",self.fila,self.columna)
             if(result.tipo == TIPO.DECIMAL):
-                #tree.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna))
-                return  Excepcion(TIPO.ERROR, f"No puede adadsadadasdasd un indice decimal",self.fila,self.columna)
+                generador.TSglobal.addExcepcion(Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna))
+                return  Excepcion(TIPO.ERROR, f"No puede tener un indice decimal",self.fila,self.columna)
             lista.append(result.valor)
         
         arrego_guardado = Identificador(self.identificador, self.fila, self.columna)
         arreglo_usar = arrego_guardado.interpretar(entorno)
         temp_inicio = arreglo_usar.valor
         variable = entorno.obtenerVariable(self.identificador)
-        print("-----variable---")
         generador.addComment('ACA ACCEDO AL VECTOR')
-        print(lista)
         #print(variable.arreglo)
         pivote = generador.agregarTemporal()
         pivote = temp_inicio
@@ -73,12 +71,8 @@ class Acceso(NodoAST):
             for i in variable.arreglo:                  # me sirve para ver que tipo regresar
                 nivel = len(lista)-1
                 if isinstance(i,list):
-                    print('--empiezo co nivel--')
-                    print(nivel)
-
                     contador = 0
                     arreglo = i
-                    print(arreglo[0])
                     while contador < nivel:
                         if isinstance(arreglo[0],list):
                             arreglo = arreglo[0]
@@ -98,9 +92,6 @@ class Acceso(NodoAST):
                         contador = contador + 1
                 if bandera:
                     break
-        print('---prueba....')
-        print(tipo_retorno)
-
         '''if len(lista)==1:
             if isinstance(variable.arreglo[0],list):
                 tipo_retorno = TIPO.ARREGLO
@@ -150,7 +141,14 @@ class Acceso(NodoAST):
             
             generador.agregarGoto(salida)
             generador.colocarLbl(error)
-            generador.agregarPrint('c','101')
+            generador.agregarPrint('c','66')
+            generador.agregarPrint('c','111')
+            generador.agregarPrint('c','117')
+            generador.agregarPrint('c','110')
+            generador.agregarPrint('c','100')
+
+            generador.agregarPrint('c','115')
+            generador.agregarPrint('c','69')
             generador.agregarPrint('c','114')
             generador.agregarPrint('c','114')
             generador.agregarPrint('c','111')

@@ -1,6 +1,7 @@
 from Abstract.Objeto import TipoObjeto
 from Abstract.NodoReporteArbol import NodoReporteArbol
 from Expresiones.Identificador import Identificador
+from TS.Generador import Generador
 from TS.Tipo import TIPO
 from Instrucciones.Return import Return
 from Abstract.NodoAST import NodoAST
@@ -21,29 +22,51 @@ class Struct(NodoAST):
     
     def interpretar(self, entorno):
         met = entorno.obtenerStruct(self.nombre)
+        aux = Generador()
+        generador = aux.obtenerGen()
         if met == None:
-            contador = 0            
+            contador = 0 
+            lista_aux =  []      
+            diccionario_aux = {}     
+            bandera = False
             for i in self.atributos:
+                lista_aux.append(i)
                 if isinstance(i.tipo,list):
                     if i.tipo[0] == TIPO.STRUCT:
-                        obtener_struct = entorno.obtenerStruct(i.tipo[1])
-                        self.diccionario[i.nombre] = [i.tipo, contador, obtener_struct]
+                        if i.tipo[1] == self.nombre:
+                            diccionario_aux[i.nombre] = [i.tipo, contador]
+                            bandera = True
+                        else:
+                            obtener_struct = entorno.obtenerStruct(i.tipo[1])
+                            self.diccionario[i.nombre] = [i.tipo, contador, obtener_struct]
                     else:
                         self.diccionario[i.nombre] = [i.tipo, contador]
-                        print('~~~~~~~~~~ARREGLO~~~~~~~~~~~~~')
-                        print(i.tipo)
                 else:
-                    print('{{{{{{{ATRIBUTOS JAJAJAJA]]]]]]]]]')
-                    print(i.tipo)
                     self.diccionario[i.nombre] = [i.tipo, contador]
+                    diccionario_aux[i.nombre] = [i.tipo, contador]
                 contador += 1
-            entorno.guardarStruct(self.nombre, self.diccionario) 
-            print(entorno.structs)
+            if bandera:
+                contador = 0
+                for i in lista_aux:
+                    if isinstance(i.tipo,list):
+                        if i.tipo[0] == TIPO.STRUCT:
+                            if i.tipo[1] == self.nombre:
+                                self.diccionario[i.nombre] = [i.tipo,contador,diccionario_aux]
+                            else:
+                                obtener_struct = entorno.obtenerStruct(i.tipo[1])
+                                self.diccionario[i.nombre] = [i.tipo, contador, obtener_struct]
+                        else:
+                            self.diccionario[i.nombre] = [i.tipo, contador]
+                    else:
+                        self.diccionario[i.nombre] = [i.tipo, contador]
+                    contador += 1
+
+            generador.TSglobal.guardarStruct(self.nombre, self.diccionario) 
             #simbolo = Simbolo(self.nombre, self.fila, self.columna, self)
             #table.setTabla(simbolo)
             
         else:
-            #tree.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
+            generador.TSglobal.addExcepcion(Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna))
             return Excepcion("Semantico", "Ya existe una función con ese nombre", self.fila, self.columna)
 
     def getNodo(self):
