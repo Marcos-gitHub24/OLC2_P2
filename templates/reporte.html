@@ -3,11 +3,6 @@
 
 {% block content %}
 <main role="main" class="container p-5">
-    <form action="/tree" method="GET">
-        <button type="submit" id="tree" class="btn btn-primary">Tree</button>
-        <img src="data:image/svg+xml;base64,{{chart}}" style="margin: auto;">
-    </form>
-
     <form action="/tabla" method="GET">
         <button type="submit" id="table" class="btn btn-primary">Table</button>
         <img src="data:image/svg+xml;base64,{{chart_tabla}}" style="margin: auto;">

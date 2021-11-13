@@ -136,6 +136,7 @@ class Acceso(NodoAST):
             generador.agregarExpresion(indice,i,'','')
 
             generador.agregarIf(indice,tamano,'>',error)
+            generador.agregarIf(indice,'1','<',error)
             generador.agregarExpresion(apunta_heap,pivote,indice,'+')
             generador.obtener_heap(pivote,apunta_heap)
             
