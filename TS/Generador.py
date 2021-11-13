@@ -28,10 +28,10 @@ class Generador:
     
     def getHeader(self):
         if self.mod:
-            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt";\n\t"math"\n);\n\n'
+            ret = '\npackage main;\n\nimport (\n\t"fmt";\n\t"math"\n);\n\n'
             self.mod = False
         else:
-            ret = '/*----HEADER----*/\npackage main;\n\nimport (\n\t"fmt";\n);\n\n'
+            ret = '\npackage main;\n\nimport (\n\t"fmt";\n);\n\n'
         if len(self.temporales) > 0:
             ret += 'var '
             for temp in range(len(self.temporales)):
@@ -48,11 +48,11 @@ class Generador:
     def agregarCodigo(self, codigo):
         if(self.es_nativa):
             if(self.nativas == ''):
-                self.nativas = self.nativas + '/*-----NATIVAS-----*/\n'
+                self.nativas = self.nativas + '\n'
             self.nativas = self.nativas + codigo
         elif(self.es_funcion):
             if(self.funciones == ''):
-                self.funciones = self.funciones + '/*-----FUNCIONES-----*/\n'
+                self.funciones = self.funciones + '\n'
             self.funciones = self.funciones + '\t' +  codigo
         else:
             self.codigo = self.codigo + '\t' +  codigo
